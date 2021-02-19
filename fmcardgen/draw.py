@@ -33,13 +33,10 @@ def draw_text_field(im: Image.Image, text: str, field: FieldOption) -> None:
 
         # expand the bounding box to account for padding, and move
         # the background relative to the starting x/y for the tetx
-
-        # FIXME: allow for different horiz/vert padding, and/or maybe even
-        # separarte top/left/etc like css?
-        x0 = x0 - field.padding + field.x
-        y0 = y0 - field.padding + field.y
-        x1 = x1 + field.padding + field.x
-        y1 = y1 + field.padding + field.y
+        x0 = x0 - field.padding.left + field.x
+        y0 = y0 - field.padding.top + field.y
+        x1 = x1 + field.padding.right + field.x
+        y1 = y1 + field.padding.bottom + field.y
 
         draw.rectangle(
             xy=(x0, y0, x1, y1),

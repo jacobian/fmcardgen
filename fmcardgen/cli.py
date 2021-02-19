@@ -31,9 +31,10 @@ def main(
 
     for post in posts:
         fm, _ = frontmatter.parse(post.read_text())
-        print(f"{post}: {fm['title']}")
         im = draw(fm, cnf)
-        im.show()
+        dest = cnf.output.format(**fm)
+        im.save(dest)
+        print(post, "->", dest)
 
 
 if __name__ == "__main__":
