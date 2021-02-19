@@ -14,24 +14,36 @@ DEFAULT_FONT = "__DEFAULT__"
 class FieldOption(BaseModel):
     source: str
     optional: bool = False
+    default: Optional[str]
     x: int
     y: int
     font: Optional[str]
     font_size: Optional[int]
     fg: Optional[Color]
     bg: Optional[Color]
+    padding: Optional[int]
+
+    class Config:
+        extra = "forbid"
 
 
 class FontOption(BaseModel):
     path: FilePath
     name: Optional[str]
 
+    class Config:
+        extra = "forbid"
+
 
 class DefaultOptions(BaseModel):
     font: Union[str, Path] = "default"
     font_size: int = 40
-    fg: Color = Color("black")
-    bg: Color = Color("white")
+    fg: Color = Color((0, 0, 0))
+    bg: Optional[Color] = None
+    padding: int = 0
+
+    class Config:
+        extra = "forbid"
 
 
 class Config(BaseModel):
@@ -41,6 +53,9 @@ class Config(BaseModel):
     text_fields: List[FieldOption] = Field(
         [FieldOption(x=0, y=0, source="title")], alias="fields"
     )
+
+    class Config:
+        extra = "forbid"
 
     # FIXME: validators, especially fonts
 

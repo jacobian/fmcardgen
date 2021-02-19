@@ -29,8 +29,6 @@ def main(
     else:
         cnf = Config()
 
-    print(cnf.dict())
-
     for post in posts:
         fm, _ = frontmatter.parse(post.read_text())
         print(f"{post}: {fm['title']}")
