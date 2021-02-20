@@ -35,6 +35,12 @@ def test_draw(config):
     assert_images_equal(im, Image.open("test_draw_expected.png"))
 
 
+def test_draw_font_default(config):
+    config.text_fields[0].font = fmcardgen.config.DEFAULT_FONT
+    fmcardgen.draw.draw({"title": "Hello World"}, config)
+    # Not checking the image, this just verifies that the default font works
+
+
 def test_draw_bg(config):
     config.text_fields[0].bg = Color("#ff000066")
     config.text_fields[0].padding = fmcardgen.config.PaddingConfig(
