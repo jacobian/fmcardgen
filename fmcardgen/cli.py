@@ -32,7 +32,7 @@ def main(
     for post in posts:
         fm, _ = frontmatter.parse(post.read_text())
         im = draw(fm, cnf)
-        dest = cnf.output.format(**fm)
+        dest = cnf.output.format(**dict(fm, file_name=post.name, file_stem=post.stem))
         im.save(dest)
         print(post, "->", dest)
 
