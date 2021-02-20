@@ -22,17 +22,16 @@ def main(
     config: Optional[Path] = typer.Option(
         default=None, file_okay=True, dir_okay=True, readable=True, resolve_path=True
     ),
+    output: Optional[str] = typer.Option(None),
 ):
 
-    if config:
-        cnf = CardGenConfig.from_file(config)
-    else:
-        cnf = CardGenConfig()
+    cnf = CardGenConfig.from_file(config) if config else CardGenConfig()
+    output = cnf.output if output is None else output
 
     for post in posts:
         fm, _ = frontmatter.parse(post.read_text())
         im = draw(fm, cnf)
-        dest = cnf.output.format(**dict(fm, file_name=post.name, file_stem=post.stem))
+        dest = output.format(**dict(fm, file_name=post.name, file_stem=post.stem))
         im.save(dest)
         print(post, "->", dest)
 
