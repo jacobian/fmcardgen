@@ -1,6 +1,8 @@
 from PIL import Image, ImageFont, ImageDraw
 from .config import CardGenConfig, TextFieldConfig, DEFAULT_FONT
 from .frontmatter import get_frontmatter_value
+from pydantic.color import Color
+from typing import Tuple
 
 
 def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
@@ -33,7 +35,21 @@ def draw_text_field(im: Image.Image, text: str, field: TextFieldConfig) -> None:
 
         draw.rectangle(
             xy=(x0, y0, x1, y1),
-            fill=field.bg.as_rgb_tuple(),
+            fill=to_pil_color(field.bg),
         )
 
-    draw.text(xy=(field.x, field.y), text=text, font=font, fill=field.fg.as_rgb_tuple())
+    draw.text(xy=(field.x, field.y), text=text, font=font, fill=to_pil_color(field.fg))
+
+
+def to_pil_color(color: Color) -> Tuple[int, ...]:
+    """
+    Convert a pydantic Color to a PIL color 4-tuple
+
+    Color.as_rgb_tuple() _almost_ works, but it returns the alpha channel as
+    a float between 0 and 1, and PIL expects an int 0-255
+    """
+    c = color.as_rgb_tuple()
+    if len(c) == 3:
+        return c
+    else:
+        return c[0], c[1], c[2], round(c[3] * 255)

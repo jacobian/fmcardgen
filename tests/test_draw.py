@@ -3,6 +3,7 @@ import pytest
 import fmcardgen.draw
 import fmcardgen.config
 from pathlib import Path
+from pydantic.color import Color
 from PIL import Image, ImageStat, ImageChops
 
 CONFIG = {
@@ -17,6 +18,30 @@ CONFIG = {
         }
     ],
 }
+
+
+@pytest.fixture(autouse=True)
+def set_working_directory(monkeypatch):
+    monkeypatch.chdir(Path(__file__).parent)
+
+
+@pytest.fixture()
+def config():
+    return fmcardgen.config.CardGenConfig.parse_obj(CONFIG)
+
+
+def test_draw(config):
+    im = fmcardgen.draw.draw({"title": "Hello World"}, config)
+    assert_images_equal(im, Image.open("test_draw_expected.png"))
+
+
+def test_draw_bg(config):
+    config.text_fields[0].bg = Color("#ff000066")
+    config.text_fields[0].padding = fmcardgen.config.PaddingConfig(
+        horizontal=10, vertical=10
+    )
+    im = fmcardgen.draw.draw({"title": "Hello World"}, config)
+    assert_images_equal(im, Image.open("test_draw_bg_expected.png"))
 
 
 def assert_images_equal(
@@ -57,18 +82,3 @@ def assert_images_equal(
             f"    expected: {expected_path}\n"
             f"    diff: {diff_path}\n"
         )
-
-
-@pytest.fixture(autouse=True)
-def set_working_directory(monkeypatch):
-    monkeypatch.chdir(Path(__file__).parent)
-
-
-@pytest.fixture()
-def config():
-    return fmcardgen.config.CardGenConfig.parse_obj(CONFIG)
-
-
-def test_draw(config):
-    im = fmcardgen.draw.draw({"title": "Hello World"}, config)
-    assert_images_equal(im, Image.open("test_draw_expected.png"))
