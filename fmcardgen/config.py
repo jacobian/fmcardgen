@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import yaml
 import toml
-import json
 from pathlib import Path
 from typing import Optional, List, Union, Dict
 from pydantic import (
@@ -74,6 +73,14 @@ class FontConfig(BaseModel):
     class Config:
         extra = "forbid"
 
+    @validator("path")
+    def check_font(cls, value: FilePath) -> FilePath:
+        try:
+            ImageFont.truetype(str(value), size=12)
+        except OSError as e:
+            raise ValueError(f"couldn't open font {value}: {e}") from e
+        return value
+
 
 class ConfigDefaults(BaseModel):
     font: Union[str, Path] = "default"
@@ -98,14 +105,6 @@ class CardGenConfig(BaseModel):
     class Config:
         extra = "forbid"
 
-    @validator("fonts", each_item=True)
-    def check_fonts(cls, value: FontConfig) -> FontConfig:
-        try:
-            ImageFont.truetype(str(value.path), size=12)
-        except OSError as e:
-            raise ValueError(f"couldn't open font {value}: {e}") from e
-        return value
-
     @classmethod
     def from_file(cls, path: Path) -> CardGenConfig:
         text = path.read_text()
@@ -114,13 +113,10 @@ class CardGenConfig(BaseModel):
         except toml.TomlDecodeError:
             try:
                 config = yaml.safe_load(text)
-            except yaml.parser.ParserError:
-                try:
-                    config = json.loads(text)
-                except json.decoder.JSONDecodeError:
-                    raise ValueError(
-                        f"Couldn't load config file {path}: it doesn't appear to be TOML, YAML, or JSON."
-                    )
+            except yaml.error.YAMLError:
+                raise ValueError(
+                    f"Couldn't load config file {path}: it doesn't appear to be TOML, YAML, or JSON."
+                )
         return cls.parse_obj(config)
 
     def __init__(self, *args, **kwargs) -> None:
