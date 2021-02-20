@@ -19,3 +19,5 @@ fields:
     font_size: 60
     x: 123
     y: 150
+    padding:
+      left: 5

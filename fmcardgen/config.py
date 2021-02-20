@@ -10,7 +10,6 @@ from pydantic import (
     FilePath,
     Field,
     root_validator,
-    ValidationError,
     validator,
 )
 from pydantic.color import Color
@@ -32,14 +31,14 @@ class PaddingConfig(BaseModel):
         if "horizontal" in values:
             for conflict in ("left", "right"):
                 if conflict in values:
-                    raise ValidationError(
+                    raise ValueError(
                         f"can't have both padding.horizontal and padding.{conflict}"
                     )
             values["left"] = values["right"] = values["horizontal"]
         if "vertical" in values:
             for conflict in ("top", "bottom"):
                 if conflict in values:
-                    raise ValidationError(
+                    raise ValueError(
                         f"can't have both padding.vertical and padding.{conflict}"
                     )
             values["top"] = values["bottom"] = values["vertical"]
@@ -104,7 +103,7 @@ class CardGenConfig(BaseModel):
         try:
             ImageFont.truetype(str(value.path), size=12)
         except OSError as e:
-            raise ValidationError(f"couldn't open font {value}: {e}") from e
+            raise ValueError(f"couldn't open font {value}: {e}") from e
         return value
 
     @classmethod
