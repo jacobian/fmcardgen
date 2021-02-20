@@ -1,23 +1,16 @@
 from PIL import Image, ImageFont, ImageDraw
 from .config import CardGenConfig, TextFieldConfig, DEFAULT_FONT
+from .frontmatter import get_frontmatter_value
 
 
 def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
     im = Image.open(cnf.template)
     for field in cnf.text_fields:
-        value = get_frontmatter_value(fm, field)
+        value = get_frontmatter_value(
+            fm, source=field.source, default=field.default, optional_ok=field.optional
+        )
         draw_text_field(im, value, field)
     return im
-
-
-def get_frontmatter_value(fm: dict, field: TextFieldConfig) -> str:
-    # FIXME: this needs to be significantly more robust
-    value = fm.get(field.source, field.default)
-    if isinstance(value, list):
-        value = value[0]
-    if not field.optional and value is None:
-        raise KeyError(field.source)
-    return value
 
 
 def draw_text_field(im: Image.Image, text: str, field: TextFieldConfig) -> None:
