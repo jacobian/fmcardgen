@@ -3,7 +3,10 @@ from fmcardgen import config
 from pathlib import Path
 from pydantic import ValidationError
 
-TESTS_DIR = Path(__file__).parent
+
+@pytest.fixture(autouse=True)
+def set_working_directory(monkeypatch):
+    monkeypatch.chdir(Path(__file__).parent)
 
 
 def test_empty_config():
@@ -13,14 +16,12 @@ def test_empty_config():
 
 
 @pytest.mark.parametrize("config_file", ["config.yml", "config.toml", "config.json"])
-def test_config_from_from(config_file, monkeypatch):
-    monkeypatch.chdir(TESTS_DIR)
+def test_config_from_from(config_file):
     cnf = config.CardGenConfig.from_file(Path(config_file))
     assert cnf.defaults.font_size == 40
 
 
-def test_config_from_file_invalid(monkeypatch):
-    monkeypatch.chdir(TESTS_DIR)
+def test_config_from_file_invalid():
     with pytest.raises(ValueError):
         config.CardGenConfig.from_file(Path("test_config.py"))
 
@@ -72,14 +73,12 @@ def test_textfield_padding_from_int():
         ["non-existant.ttf", r"file or directory .* does not exist"],
     ],
 )
-def test_font_validator(path, expected_error, monkeypatch):
-    monkeypatch.chdir(TESTS_DIR)
+def test_font_validator(path, expected_error):
     with pytest.raises(ValidationError, match=expected_error):
         config.FontConfig(path=path)
 
 
-def test_text_fields_can_set_fonts_directly(monkeypatch):
-    monkeypatch.chdir(TESTS_DIR)
+def test_text_fields_can_set_fonts_directly():
     c = config.CardGenConfig.parse_obj(
         {
             "fields": [
