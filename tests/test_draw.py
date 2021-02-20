@@ -27,6 +27,7 @@ def assert_images_equal(
     ), "expected images to be the same dimensions"
     assert actual.mode == expected.mode, "expected images to be the same mode"
 
+    # Diff algorithm adapted from https://github.com/nicolashahn/diffimg
     diff = ImageChops.difference(actual, expected)
     stat = ImageStat.Stat(diff)
     num_channels = len(stat.mean)
@@ -35,14 +36,20 @@ def assert_images_equal(
     diff_ratio = sum_channel_values / max_all_channels
 
     if diff_ratio > delta:
-        token = secrets.token_urlsafe(8)
         save_location = Path(__file__).parent.parent.resolve()
+        token = secrets.token_urlsafe(8)
         actual_path = save_location / f"{token}-actual.png"
         expected_path = save_location / f"{token}-expected.png"
         diff_path = save_location / f"{token}-diff.png"
+
         actual.save(str(actual_path))
         expected.save(str(expected_path))
+
+        # for purposes of debugging, the diff is far easier to read if we
+        # artificially remove the alpha channel
+        diff.putalpha(255)
         diff.save(str(diff_path))
+
         pytest.fail(
             f"images differ by {diff_ratio:.2f} (allowed={delta})\n"
             f"test images written to:\n"
