@@ -102,9 +102,10 @@ class Config(BaseModel):
     @validator("fonts", each_item=True)
     def check_fonts(cls, value: FontOption) -> FontOption:
         try:
-            ImageFont.truetype(value, size=12)
+            ImageFont.truetype(str(value.path), size=12)
         except OSError as e:
             raise ValidationError(f"couldn't open font {value}: {e}") from e
+        return value
 
     @classmethod
     def from_file(cls: Config, path: Path) -> Config:

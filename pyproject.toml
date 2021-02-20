@@ -8,7 +8,8 @@ authors = ["Jacob Kaplan-Moss <jacob@jacobian.org>"]
 fmcardgen = 'fmcardgen.cli:cli'
 
 [tool.pytest.ini_options]
-addopts = "--cov=. --no-cov-on-fail"
+addopts = "--cov=fmcardgen --no-cov-on-fail"
+testpaths = "tests"
 
 [tool.poetry.dependencies]
 python = "^3.8"

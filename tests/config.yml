@@ -1,0 +1,21 @@
+template: template.png
+output: card-{file_stem}.png
+
+fonts:
+  - name: regular
+    path: "RobotoCondensed/RobotoCondensed-Regular.ttf"
+  - name: bold
+    path: "RobotoCondensed/RobotoCondensed-Bold.ttf"
+  - name: light
+    path: "RobotoCondensed/RobotoCondensed-Light.ttf"
+
+defaults:
+  font: regular
+  font_size: 40
+
+fields:
+  - source: title
+    font: bold
+    font_size: 60
+    x: 123
+    y: 150
