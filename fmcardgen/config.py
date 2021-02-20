@@ -19,7 +19,7 @@ from PIL import ImageFont
 DEFAULT_FONT = "__DEFAULT__"
 
 
-class Padding(BaseModel):
+class PaddingConfig(BaseModel):
     horizontal: int = 0
     vertical: int = 0
     top: int = 0
@@ -46,7 +46,7 @@ class Padding(BaseModel):
         return values
 
 
-class FieldOption(BaseModel):
+class TextFieldConfig(BaseModel):
     source: str
     optional: bool = False
     default: Optional[str]
@@ -56,19 +56,19 @@ class FieldOption(BaseModel):
     font_size: Optional[int]
     fg: Optional[Color]
     bg: Optional[Color]
-    padding: Union[Padding, int] = 0
+    padding: Union[PaddingConfig, int] = 0
 
     class Config:
         extra = "forbid"
 
     @validator("padding")
-    def check_padding(cls, value: Union[Padding, int]) -> Padding:
-        if not isinstance(value, Padding):
-            return Padding(top=value, left=value, bottom=value, right=value)
+    def check_padding(cls, value: Union[PaddingConfig, int]) -> PaddingConfig:
+        if not isinstance(value, PaddingConfig):
+            return PaddingConfig(top=value, left=value, bottom=value, right=value)
         return value
 
 
-class FontOption(BaseModel):
+class FontConfig(BaseModel):
     path: FilePath
     name: Optional[str]
 
@@ -76,7 +76,7 @@ class FontOption(BaseModel):
         extra = "forbid"
 
 
-class DefaultOptions(BaseModel):
+class ConfigDefaults(BaseModel):
     font: Union[str, Path] = "default"
     font_size: int = 40
     fg: Color = Color((0, 0, 0))
@@ -87,20 +87,20 @@ class DefaultOptions(BaseModel):
         extra = "forbid"
 
 
-class Config(BaseModel):
+class CardGenConfig(BaseModel):
     template: FilePath = Path("template.png")
     output: Optional[str] = "out-{slug}.png"
-    defaults: DefaultOptions = DefaultOptions()
-    fonts: List[FontOption] = []
-    text_fields: List[FieldOption] = Field(
-        [FieldOption(x=10, y=10, source="title")], alias="fields"
+    defaults: ConfigDefaults = ConfigDefaults()
+    fonts: List[FontConfig] = []
+    text_fields: List[TextFieldConfig] = Field(
+        [TextFieldConfig(x=10, y=10, source="title")], alias="fields"
     )
 
     class Config:
         extra = "forbid"
 
     @validator("fonts", each_item=True)
-    def check_fonts(cls, value: FontOption) -> FontOption:
+    def check_fonts(cls, value: FontConfig) -> FontConfig:
         try:
             ImageFont.truetype(str(value.path), size=12)
         except OSError as e:
@@ -108,7 +108,7 @@ class Config(BaseModel):
         return value
 
     @classmethod
-    def from_file(cls: Config, path: Path) -> Config:
+    def from_file(cls, path: Path) -> CardGenConfig:
         text = path.read_text()
         try:
             config = toml.loads(text)

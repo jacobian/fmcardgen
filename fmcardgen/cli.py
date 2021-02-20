@@ -3,7 +3,7 @@ import frontmatter
 from pathlib import Path
 from typing import List, Optional
 from rich import print
-from .config import Config
+from .config import CardGenConfig
 from .draw import draw
 
 cli = typer.Typer()
@@ -25,9 +25,9 @@ def main(
 ):
 
     if config:
-        cnf = Config.from_file(config)
+        cnf = CardGenConfig.from_file(config)
     else:
-        cnf = Config()
+        cnf = CardGenConfig()
 
     for post in posts:
         fm, _ = frontmatter.parse(post.read_text())
