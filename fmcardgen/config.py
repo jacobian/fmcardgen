@@ -14,6 +14,7 @@ from pydantic import (
     validator,
 )
 from pydantic.color import Color
+from PIL import ImageFont
 
 DEFAULT_FONT = "__DEFAULT__"
 
@@ -92,13 +93,18 @@ class Config(BaseModel):
     defaults: DefaultOptions = DefaultOptions()
     fonts: List[FontOption] = []
     text_fields: List[FieldOption] = Field(
-        [FieldOption(x=0, y=0, source="title")], alias="fields"
+        [FieldOption(x=10, y=10, source="title")], alias="fields"
     )
 
     class Config:
         extra = "forbid"
 
-    # FIXME: validators, especially fonts
+    @validator("fonts", each_item=True)
+    def check_fonts(cls, value: FontOption) -> FontOption:
+        try:
+            ImageFont.truetype(value, size=12)
+        except OSError as e:
+            raise ValidationError(f"couldn't open font {value}: {e}") from e
 
     @classmethod
     def from_file(cls: Config, path: Path) -> Config:
