@@ -3,7 +3,7 @@ from __future__ import annotations
 import yaml
 import toml
 from pathlib import Path
-from typing import Optional, List, Union, Dict
+from typing import Literal, Optional, List, Union, Dict
 from pydantic import (
     BaseModel,
     FilePath,
@@ -60,6 +60,7 @@ class TextFieldConfig(BaseModel):
     padding: Union[PaddingConfig, int] = PaddingConfig()
     max_width: Optional[int]
     wrap: bool = True
+    parse: Optional[Literal["datetime"]]
 
     class Config:
         extra = "forbid"

@@ -1,4 +1,5 @@
 import pytest
+import dateutil.parser
 from fmcardgen.frontmatter import get_frontmatter_value, get_frontmatter_formatted
 
 TEST_FRONTMATTER = {
@@ -6,6 +7,7 @@ TEST_FRONTMATTER = {
     "author": "Someone",
     "fieldx": "X",
     "listfield": ["one", "two", "three"],
+    "date": "2021-01-01",
 }
 
 
@@ -67,3 +69,13 @@ def test_get_frontmatter_formatted_defaults():
         defaults={"missing": "MISSING"},
     )
     assert expected == actual
+
+
+def test_get_frontmatter_parser():
+    assert (
+        get_frontmatter_value(TEST_FRONTMATTER, source="date")
+        == TEST_FRONTMATTER["date"]
+    )
+    assert get_frontmatter_value(
+        TEST_FRONTMATTER, source="date", parser=dateutil.parser.parse
+    ) == dateutil.parser.parse(TEST_FRONTMATTER["date"])

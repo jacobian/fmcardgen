@@ -1,15 +1,22 @@
-from typing import Optional, List, Mapping, Any
+from typing import Optional, List, Mapping, Any, Callable
 
 
 def get_frontmatter_value(
-    fm: dict, source: str, default: Optional[str] = None, missing_ok: bool = False
+    fm: dict,
+    source: str,
+    default: Optional[str] = None,
+    missing_ok: bool = False,
+    parser: Optional[Callable[[str], Any]] = None,
 ) -> str:
     value = fm.get(source, default)
     if isinstance(value, list):
         value = value[0]
     if not missing_ok and value is None:
         raise KeyError(source)
-    return value
+    if parser:
+        return parser(value)
+    else:
+        return value
 
 
 def get_frontmatter_formatted(

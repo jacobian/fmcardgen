@@ -4,6 +4,7 @@ from .frontmatter import get_frontmatter_value, get_frontmatter_formatted
 from pydantic.color import Color
 from typing import Tuple, Mapping
 from textwrap import TextWrapper
+import dateutil.parser
 
 
 def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
@@ -26,11 +27,13 @@ def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
             )
 
         else:
+            parser = dateutil.parser if field.parse == "datetime" else None
             value = get_frontmatter_value(
                 fm,
                 source=field.source,
                 default=field.default,
                 missing_ok=field.optional,
+                parser=parser,
             )
             if field.format:
                 value = field.format.format(value, **{field.source: value})
