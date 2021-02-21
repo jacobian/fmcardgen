@@ -3,10 +3,9 @@ from __future__ import annotations
 import yaml
 import toml
 from pathlib import Path
-from typing import Literal, Optional, List, Union, Dict
+from typing import Literal, Optional, List, Union, Dict, TYPE_CHECKING
 from pydantic import (
     BaseModel,
-    FilePath,
     Field,
     root_validator,
     validator,
@@ -15,6 +14,13 @@ from pydantic.color import Color
 from PIL import ImageFont
 
 DEFAULT_FONT = "__DEFAULT__"
+
+# Workaround for mypy checks against FilePath
+# See https://github.com/samuelcolvin/pydantic/pull/2099
+if TYPE_CHECKING:
+    FilePath = Union[Path, str]  # pragma: no cover
+else:
+    from pydantic import FilePath
 
 
 class PaddingConfig(BaseModel):
@@ -97,6 +103,10 @@ class FontConfig(BaseModel):
             raise ValueError(f"couldn't open font {value}: {e}") from e
         return value
 
+    @validator("name")
+    def check_name(cls, value: Optional[str], values: Dict) -> str:
+        return value if value else values["path"].stem
+
 
 class ConfigDefaults(BaseModel):
     font: Union[str, Path] = "default"
@@ -161,14 +171,17 @@ class CardGenConfig(BaseModel):
 
         FIXME: PIL also (I think?) supports system fonts, but this won't.
         """
-        fonts = {f.name.lower(): f.path for f in self.fonts}
+        fonts = {str(f.name).lower(): f.path for f in self.fonts}
         fonts["default"] = DEFAULT_FONT
 
         for text_field in self.text_fields:
+            # for mypy - this should always be str() but mypy doesn't know that
+            font = str(text_field.font)
+
             # If the font's a key into the given font list, do the lookup and store the result
-            if text_field.font.lower() in fonts:
-                text_field.font = fonts[text_field.font]
+            if font.lower() in fonts:
+                text_field.font = fonts[font]
 
             # Otherwise, assume it's a path
             else:
-                text_field.font = Path(text_field.font)
+                text_field.font = Path(font)

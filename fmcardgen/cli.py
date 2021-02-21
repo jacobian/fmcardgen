@@ -26,7 +26,7 @@ def main(
 ):
 
     cnf = CardGenConfig.from_file(config) if config else CardGenConfig()
-    output = cnf.output if output is None else output
+    output = str(cnf.output if output is None else output)
 
     for post in posts:
         fm, _ = frontmatter.parse(post.read_text())

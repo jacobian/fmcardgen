@@ -2,7 +2,7 @@ from typing import Optional, List, Mapping, Any, Callable
 
 
 def get_frontmatter_value(
-    fm: dict,
+    fm: Mapping[str, Any],
     source: str,
     default: Optional[str] = None,
     missing_ok: bool = False,
@@ -23,7 +23,7 @@ def get_frontmatter_formatted(
     fm: Mapping[str, Any],
     format: str,
     sources: List[str],
-    defaults: Mapping[str, str] = None,
+    defaults: Optional[Mapping[str, Any]] = None,
     missing_ok: bool = False,
 ) -> str:
     defaults = {} if defaults is None else defaults

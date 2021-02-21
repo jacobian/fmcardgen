@@ -24,6 +24,7 @@ python-dateutil = "^2.8.1"
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.2"
 pytest-cov = "^2.11.1"
+mypy = "^0.812"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
