@@ -22,11 +22,11 @@ def draw_text_field(im: Image.Image, text: str, field: TextFieldConfig) -> None:
     else:
         font = ImageFont.truetype(str(field.font), size=field.font_size)
 
-    draw = ImageDraw.Draw(im, mode="RGBA")
-
     if field.wrap:
         max_width = field.max_width if field.max_width else im.width - field.x
         text = wrap_font_text(font, text, max_width)
+
+    draw = ImageDraw.Draw(im, mode="RGBA")
 
     if field.bg:
         x0, y0, x1, y1 = draw.textbbox(xy=(field.x, field.y), text=text, font=font)
@@ -37,10 +37,16 @@ def draw_text_field(im: Image.Image, text: str, field: TextFieldConfig) -> None:
         x1 += field.padding.right
         y1 += field.padding.bottom
 
-        draw.rectangle(
+        # When drawing with any transparancy, just drawing directly on to
+        # the background image doesn't actually do compositing, you just get
+        # a semi-transparant "cutout" of the background. To work around this,
+        # draw into a temporary image and then composite it.
+        overlay = Image.new(mode="RGBA", size=im.size, color=(0, 0, 0, 0))
+        ImageDraw.Draw(overlay).rectangle(
             xy=(x0, y0, x1, y1),
             fill=to_pil_color(field.bg),
         )
+        im.alpha_composite(overlay)
 
     draw.text(xy=(field.x, field.y), text=text, font=font, fill=to_pil_color(field.fg))
 
