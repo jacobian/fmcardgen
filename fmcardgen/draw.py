@@ -32,8 +32,10 @@ def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
                 default=field.default,
                 missing_ok=field.optional,
             )
+            if field.format:
+                value = field.format.format(value, **{field.source: value})
 
-        draw_text_field(im, value, field)
+        draw_text_field(im, str(value), field)
 
     return im
 

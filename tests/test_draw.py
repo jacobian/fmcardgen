@@ -1,6 +1,7 @@
 import secrets
 import pytest
 import fmcardgen.draw
+import datetime
 from fmcardgen.config import CardGenConfig, DEFAULT_FONT
 from pathlib import Path
 from pydantic.color import Color
@@ -105,7 +106,7 @@ def test_draw_wrapped(config: CardGenConfig):
 
 
 @pytest.mark.parametrize("value_for_default", ["MISSING", {"date": "MISSING"}])
-def test_draw_formatted(value_for_default):
+def test_draw_formatted_multi(value_for_default):
     config = CardGenConfig.parse_obj(
         {
             "template": "template.png",
@@ -125,6 +126,28 @@ def test_draw_formatted(value_for_default):
     fm = {"title": "Hello World", "author": "Anyone"}
     im = fmcardgen.draw.draw(fm, config)
     assert_images_equal(im, Image.open("test_draw_formatted_expected.png"))
+
+
+@pytest.mark.parametrize("format_string", ["{date:%B %-d, %Y}", "{:%B %-d, %Y}"])
+def test_draw_format_single(format_string):
+    config = CardGenConfig.parse_obj(
+        {
+            "template": "template.png",
+            "fields": [
+                {
+                    "source": "date",
+                    "format": format_string,
+                    "x": 100,
+                    "y": 100,
+                    "font": "RobotoCondensed/RobotoCondensed-Bold.ttf",
+                    "font_size": 100,
+                }
+            ],
+        }
+    )
+    fm = {"date": datetime.date(2021, 1, 1)}
+    im = fmcardgen.draw.draw(fm, config)
+    assert_images_equal(im, Image.open("test_draw_format_single_expected.png"))
 
 
 def assert_images_equal(
