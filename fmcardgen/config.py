@@ -45,9 +45,12 @@ class PaddingConfig(BaseModel):
 
 
 class TextFieldConfig(BaseModel):
-    source: str
+    # NB: need to define format before source so that the source validator below
+    # works. See https://pydantic-docs.helpmanual.io/usage/models/#field-ordering.
+    format: Optional[str]
+    source: Union[str, List[str]]
     optional: bool = False
-    default: Optional[str]
+    default: Union[str, Dict[str, str], None]
     x: int
     y: int
     font: Union[str, Path, None]
@@ -66,6 +69,14 @@ class TextFieldConfig(BaseModel):
     def check_padding(cls, value: Union[PaddingConfig, int]) -> PaddingConfig:
         if not isinstance(value, PaddingConfig):
             return PaddingConfig(top=value, left=value, bottom=value, right=value)
+        return value
+
+    @validator("source")
+    def check_source(
+        cls, value: Union[str, List[str]], values: Dict
+    ) -> Union[str, List[str]]:
+        if isinstance(value, list) and not values.get("format"):
+            raise ValueError("can't have multiple sources without providing format")
         return value
 
 

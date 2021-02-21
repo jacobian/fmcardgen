@@ -104,6 +104,29 @@ def test_draw_wrapped(config: CardGenConfig):
     assert_images_equal(im, Image.open("test_draw_wrapped.png"))
 
 
+@pytest.mark.parametrize("value_for_default", ["MISSING", {"date": "MISSING"}])
+def test_draw_formatted(value_for_default):
+    config = CardGenConfig.parse_obj(
+        {
+            "template": "template.png",
+            "fields": [
+                {
+                    "source": ["title", "author", "date"],
+                    "format": "{title} by {author} on {date}",
+                    "default": value_for_default,
+                    "x": 100,
+                    "y": 100,
+                    "font": "RobotoCondensed/RobotoCondensed-Bold.ttf",
+                    "font_size": 60,
+                }
+            ],
+        }
+    )
+    fm = {"title": "Hello World", "author": "Anyone"}
+    im = fmcardgen.draw.draw(fm, config)
+    assert_images_equal(im, Image.open("test_draw_formatted_expected.png"))
+
+
 def assert_images_equal(
     actual: Image.Image, expected: Image.Image, delta: float = 0.01
 ):

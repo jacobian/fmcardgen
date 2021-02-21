@@ -1,18 +1,40 @@
 from PIL import Image, ImageFont, ImageDraw
 from .config import CardGenConfig, TextFieldConfig, DEFAULT_FONT
-from .frontmatter import get_frontmatter_value
+from .frontmatter import get_frontmatter_value, get_frontmatter_formatted
 from pydantic.color import Color
-from typing import Tuple
+from typing import Tuple, Mapping
 from textwrap import TextWrapper
 
 
 def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
     im = Image.open(cnf.template)
+
     for field in cnf.text_fields:
-        value = get_frontmatter_value(
-            fm, source=field.source, default=field.default, optional_ok=field.optional
-        )
+
+        if isinstance(field.source, list):
+            if isinstance(field.default, Mapping):
+                defaults = field.default
+            else:
+                defaults = {source: field.default for source in field.source}
+
+            value = get_frontmatter_formatted(
+                fm,
+                format=field.format,
+                sources=field.source,
+                defaults=defaults,
+                missing_ok=field.optional,
+            )
+
+        else:
+            value = get_frontmatter_value(
+                fm,
+                source=field.source,
+                default=field.default,
+                missing_ok=field.optional,
+            )
+
         draw_text_field(im, value, field)
+
     return im
 
 

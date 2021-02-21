@@ -98,3 +98,8 @@ def test_padding_config_assignment():
     t = config.TextFieldConfig(source="x", x=0, y=0)
     t.padding = 4
     assert t.padding.left == t.padding.right == t.padding.top == t.padding.bottom == 4
+
+
+def test_multiple_sources_requires_format():
+    with pytest.raises(ValidationError):
+        config.TextFieldConfig(source=["x", "y"], x=0, y=0)
