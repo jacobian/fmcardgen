@@ -4,7 +4,7 @@ import fmcardgen.draw
 import fmcardgen.config
 from pathlib import Path
 from pydantic.color import Color
-from PIL import Image, ImageStat, ImageChops
+from PIL import Image, ImageStat, ImageChops, ImageFont
 
 CONFIG = {
     "template": "template.png",
@@ -48,6 +48,50 @@ def test_draw_bg(config):
     )
     im = fmcardgen.draw.draw({"title": "Hello World"}, config)
     assert_images_equal(im, Image.open("test_draw_bg_expected.png"))
+
+
+def test_wrap_font_text():
+    font = ImageFont.truetype("RobotoCondensed/RobotoCondensed-Bold.ttf", 40)
+    text = (
+        "this is some text, it's comprised of many words and is fairly "
+        "long, long enough to wrap."
+    )
+    text = fmcardgen.draw.wrap_font_text(font, text, 600)
+    assert text == (
+        "this is some text, it's comprised of\n"
+        "many words and is fairly long, long\n"
+        "enough to wrap."
+    )
+
+
+def test_wrap_font_text_long_words():
+    font = ImageFont.truetype("RobotoCondensed/RobotoCondensed-Bold.ttf", 40)
+    text = (
+        "this is some text, which contains the word "
+        "supercalifragilisticexpialidocious and thus "
+        "may have trouble wrapping."
+    )
+    text = fmcardgen.draw.wrap_font_text(font, text, 600)
+    assert text == (
+        "this is some text, which contains the\n"
+        "word\n"
+        "supercalifragilisticexpialidocious and\n"
+        "thus may have trouble wrapping."
+    )
+
+
+def test_wrap_font_text_extra_long_words():
+    font = ImageFont.truetype("RobotoCondensed/RobotoCondensed-Bold.ttf", 40)
+    text = (
+        "supercalifragilisticexpialidocioussupercalifragilisticexpialidocious "
+        "at the begininng of the line hits special cases."
+    )
+    text = fmcardgen.draw.wrap_font_text(font, text, 600)
+    assert text == (
+        "supercalifragilisticexpialidocioussupercalifragilisticexpialidocious\n"
+        "at the begininng of the line hits\n"
+        "special cases."
+    )
 
 
 def assert_images_equal(

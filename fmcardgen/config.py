@@ -55,6 +55,8 @@ class TextFieldConfig(BaseModel):
     fg: Optional[Color]
     bg: Optional[Color]
     padding: Union[PaddingConfig, int] = 0
+    max_width: Optional[int]
+    wrap: bool = True
 
     class Config:
         extra = "forbid"
