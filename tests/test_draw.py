@@ -1,7 +1,7 @@
 import secrets
 import pytest
 import fmcardgen.draw
-import fmcardgen.config
+from fmcardgen.config import CardGenConfig, DEFAULT_FONT
 from pathlib import Path
 from pydantic.color import Color
 from PIL import Image, ImageStat, ImageChops, ImageFont
@@ -27,7 +27,7 @@ def set_working_directory(monkeypatch):
 
 @pytest.fixture()
 def config():
-    return fmcardgen.config.CardGenConfig.parse_obj(CONFIG)
+    return CardGenConfig.parse_obj(CONFIG)
 
 
 def test_draw(config):
@@ -36,7 +36,7 @@ def test_draw(config):
 
 
 def test_draw_font_default(config):
-    config.text_fields[0].font = fmcardgen.config.DEFAULT_FONT
+    config.text_fields[0].font = DEFAULT_FONT
     fmcardgen.draw.draw({"title": "Hello World"}, config)
     # Not checking the image, this just verifies that the default font works
 
@@ -92,6 +92,16 @@ def test_wrap_font_text_extra_long_words():
         "at the begininng of the line hits\n"
         "special cases."
     )
+
+
+def test_draw_wrapped(config: CardGenConfig):
+    config.text_fields[0].font_size = 40
+    config.text_fields[0].wrap = True
+    config.text_fields[0].max_width = 400
+    config.text_fields[0].bg = Color("#00ff0066")
+    fm = {"title": "This is a longer title that I expect to wrap some."}
+    im = fmcardgen.draw.draw(fm, config)
+    assert_images_equal(im, Image.open("test_draw_wrapped.png"))
 
 
 def assert_images_equal(

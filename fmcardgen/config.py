@@ -54,7 +54,7 @@ class TextFieldConfig(BaseModel):
     font_size: Optional[int]
     fg: Optional[Color]
     bg: Optional[Color]
-    padding: Union[PaddingConfig, int] = 0
+    padding: Union[PaddingConfig, int] = PaddingConfig()
     max_width: Optional[int]
     wrap: bool = True
 
