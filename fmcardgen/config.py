@@ -50,7 +50,7 @@ class TextFieldConfig(BaseModel):
     default: Optional[str]
     x: int
     y: int
-    font: Optional[str]
+    font: Union[str, Path, None]
     font_size: Optional[int]
     fg: Optional[Color]
     bg: Optional[Color]
@@ -60,6 +60,7 @@ class TextFieldConfig(BaseModel):
 
     class Config:
         extra = "forbid"
+        validate_assignment = True
 
     @validator("padding")
     def check_padding(cls, value: Union[PaddingConfig, int]) -> PaddingConfig:
@@ -74,6 +75,7 @@ class FontConfig(BaseModel):
 
     class Config:
         extra = "forbid"
+        validate_assignment = True
 
     @validator("path")
     def check_font(cls, value: FilePath) -> FilePath:
@@ -93,6 +95,7 @@ class ConfigDefaults(BaseModel):
 
     class Config:
         extra = "forbid"
+        validate_assignment = True
 
 
 class CardGenConfig(BaseModel):
@@ -106,6 +109,7 @@ class CardGenConfig(BaseModel):
 
     class Config:
         extra = "forbid"
+        validate_assignment = True
 
     @classmethod
     def from_file(cls, path: Path) -> CardGenConfig:

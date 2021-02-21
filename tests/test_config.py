@@ -92,3 +92,9 @@ def test_text_fields_can_set_fonts_directly():
         }
     )
     assert c.text_fields[0].font == Path("RobotoCondensed/RobotoCondensed-Bold.ttf")
+
+
+def test_padding_config_assignment():
+    t = config.TextFieldConfig(source="x", x=0, y=0)
+    t.padding = 4
+    assert t.padding.left == t.padding.right == t.padding.top == t.padding.bottom == 4
