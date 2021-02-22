@@ -153,9 +153,7 @@ def test_draw_format_single(format_string):
 def assert_images_equal(
     actual: Image.Image, expected: Image.Image, delta: float = 0.01
 ):
-    assert (
-        actual.width == expected.width and actual.height == expected.height
-    ), "expected images to be the same dimensions"
+    assert actual.size == expected.size, "expected images to be the same dimensions"
     assert actual.mode == expected.mode, "expected images to be the same mode"
 
     # Diff algorithm adapted from https://github.com/nicolashahn/diffimg
