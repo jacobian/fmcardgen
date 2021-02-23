@@ -20,13 +20,15 @@ def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
         if field.multi:
             values = get_frontmatter_list(
                 fm,
-                source=field.source,
-                default=field.default,
+                source=str(field.source),
+                default=str(field.default),
                 missing_ok=field.optional,
                 parser=parser,
             )
             if field.format:
-                values = [field.format.format(v, **{field.source: v}) for v in values]
+                values = [
+                    field.format.format(v, **{str(field.source): v}) for v in values
+                ]
             draw_tag_field(im, values, field)
 
         elif isinstance(field.source, list):
@@ -73,6 +75,7 @@ def draw_text_field(im: Image.Image, text: str, field: TextFieldConfig) -> None:
     draw = ImageDraw.Draw(im, mode="RGBA")
 
     if field.bg:
+        assert isinstance(field.padding, PaddingConfig)  # for mypy
         _draw_rect(
             im=im,
             bbox=draw.textbbox(xy=(field.x, field.y), text=text, font=font),
@@ -85,6 +88,8 @@ def draw_text_field(im: Image.Image, text: str, field: TextFieldConfig) -> None:
 
 
 def draw_tag_field(im: Image.Image, tags: List[str], field: TextFieldConfig) -> None:
+    assert isinstance(field.padding, PaddingConfig)  # for mypy
+
     font = load_font(str(field.font), field.font_size)
 
     draw = ImageDraw.Draw(im)
@@ -121,7 +126,6 @@ def _draw_rect(
     x0, y0, x1, y1 = bbox
 
     # expand the bounding box to account for padding
-    assert isinstance(padding, PaddingConfig)  # for mypy
     x0 -= padding.left
     y0 -= padding.top
     x1 += padding.right
