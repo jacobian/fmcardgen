@@ -3,7 +3,7 @@ from __future__ import annotations
 import yaml
 import toml
 from pathlib import Path
-from typing import Literal, Optional, List, Union, Dict, TYPE_CHECKING
+from typing import Literal, Mapping, Optional, List, Union, Dict, TYPE_CHECKING
 from pydantic import (
     BaseModel,
     Field,
@@ -67,6 +67,8 @@ class TextFieldConfig(BaseModel):
     max_width: Optional[int]
     wrap: bool = True
     parse: Optional[Literal["datetime"]]
+    multi: bool = False
+    spacing: int = 20
 
     class Config:
         extra = "forbid"
@@ -84,6 +86,15 @@ class TextFieldConfig(BaseModel):
     ) -> Union[str, List[str]]:
         if isinstance(value, list) and not values.get("format"):
             raise ValueError("can't have multiple sources without providing format")
+        return value
+
+    @validator("multi")
+    def check_multi(cls, value: bool, values: Dict) -> bool:
+        if value:
+            if "source" in values and isinstance(values["source"], list):
+                raise ValueError("can't have multiple sources with multi=True")
+            if "default" in values and isinstance(values["default"], Mapping):
+                raise ValueError("can't have multiple defaults with multi=True")
         return value
 
 

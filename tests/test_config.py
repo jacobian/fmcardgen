@@ -101,5 +101,22 @@ def test_padding_config_assignment():
 
 
 def test_multiple_sources_requires_format():
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError, match="can't have multiple sources"):
         config.TextFieldConfig(source=["x", "y"], x=0, y=0)
+
+
+def test_config_multi():
+    config.TextFieldConfig(multi=True, source="tags", x=0, y=0)
+
+
+def test_config_multi_validation():
+    with pytest.raises(
+        ValidationError, match="can't have multiple sources with multi=True"
+    ):
+        config.TextFieldConfig(multi=True, source=["x", "y"], format="x", x=0, y=0)
+    with pytest.raises(
+        ValidationError, match="can't have multiple defaults with multi=True"
+    ):
+        config.TextFieldConfig(
+            multi=True, source="x", default={"x": 1, "y": 2}, x=0, y=0
+        )
