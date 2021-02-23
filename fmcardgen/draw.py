@@ -2,7 +2,7 @@ from PIL import Image, ImageFont, ImageDraw
 from .config import CardGenConfig, PaddingConfig, TextFieldConfig, DEFAULT_FONT
 from .frontmatter import get_frontmatter_value, get_frontmatter_formatted
 from pydantic.color import Color
-from typing import List, Tuple, Mapping, cast, Union
+from typing import List, Tuple, Mapping, cast, Union, Optional
 from textwrap import TextWrapper
 import dateutil.parser
 
@@ -48,10 +48,7 @@ def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
 
 
 def draw_text_field(im: Image.Image, text: str, field: TextFieldConfig) -> None:
-    if field.font == DEFAULT_FONT:
-        font = ImageFont.load_default()
-    else:
-        font = ImageFont.truetype(str(field.font), size=field.font_size)
+    font = load_font(str(field.font), field.font_size)
 
     if field.wrap:
         max_width = field.max_width if field.max_width else im.width - field.x
@@ -82,6 +79,26 @@ def draw_text_field(im: Image.Image, text: str, field: TextFieldConfig) -> None:
 
     assert isinstance(field.fg, Color)  # for mypy
     draw.text(xy=(field.x, field.y), text=text, font=font, fill=to_pil_color(field.fg))
+
+
+def draw_tag_field(im: Image.Image, tags: List[str]) -> None:
+    font = load_font("Arial", 40)
+
+    draw = ImageDraw.Draw(im)
+    xy = (20, 20)
+    margin = 20
+
+    # Calculate the height of all the text, and use that as the height for each
+    # individual box If we don't do this, different boxes could have different
+    # calculated heights because of ascenders/descenders.
+    _, height = draw.textsize(text=" ".join(tags), font=font)
+
+    for tag in tags:
+        width = draw.textlength(text=tag, font=font)
+        bbox = (xy[0], xy[1], xy[0] + width, xy[1] + height)
+        draw.rectangle(xy=bbox, fill=(0, 0, 0))
+        draw.text(xy=xy, text=tag, font=font, fill=(255, 255, 255))
+        xy = (xy[0] + width + margin, xy[1])
 
 
 def wrap_font_text(font: ImageFont.ImageFont, text: str, max_width: int) -> str:
@@ -118,6 +135,13 @@ def wrap_font_text(font: ImageFont.ImageFont, text: str, max_width: int) -> str:
         lines.append(cur_line)
 
     return "\n".join("".join(line).strip() for line in lines)
+
+
+def load_font(font: str, size: Optional[int]) -> ImageFont.ImageFont:
+    if font == DEFAULT_FONT:
+        return ImageFont.load_default()
+    else:
+        return ImageFont.truetype(font, size)
 
 
 PILColorTuple = Union[Tuple[int, int, int], Tuple[int, int, int, int]]
