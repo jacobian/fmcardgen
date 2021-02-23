@@ -174,10 +174,9 @@ def wrap_font_text(font: ImageFont.ImageFont, text: str, max_width: int) -> str:
             cur_line.append(chunk)
             cur_line_width += width
 
-    if cur_line:
-        lines.append(cur_line)
+    lines.append(cur_line)
 
-    return "\n".join("".join(line).strip() for line in lines)
+    return "\n".join("".join(line).strip() for line in lines).strip()
 
 
 def load_font(font: str, size: Optional[int]) -> ImageFont.ImageFont:

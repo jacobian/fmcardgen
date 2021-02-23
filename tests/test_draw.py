@@ -16,6 +16,7 @@ CONFIG = {
             "y": 200,
             "font": "RobotoCondensed/RobotoCondensed-Bold.ttf",
             "font_size": 200,
+            "wrap": False,
         }
     ],
 }
@@ -150,30 +151,39 @@ def test_draw_format_single(format_string):
     assert_images_equal(im, Image.open("test_draw_format_single_expected.png"))
 
 
+TAG_CONFIG = {
+    "template": "template.png",
+    "fields": [
+        {
+            "source": "tags",
+            "multi": True,
+            "spacing": 20,
+            "x": 120,
+            "y": 100,
+            "font": "RobotoCondensed/RobotoCondensed-Regular.ttf",
+            "font_size": 50,
+            "bg": "#ff000066",
+            "padding": {"bottom": 6, "horizontal": 10},
+        }
+    ],
+}
+
+
 @pytest.mark.parametrize("format", [None, "{}"])
 def test_draw_tags(format):
-    config = CardGenConfig.parse_obj(
-        {
-            "template": "template.png",
-            "fields": [
-                {
-                    "source": "tags",
-                    "multi": True,
-                    "format": format,
-                    "spacing": 20,
-                    "x": 120,
-                    "y": 100,
-                    "font": "RobotoCondensed/RobotoCondensed-Regular.ttf",
-                    "font_size": 50,
-                    "bg": "#ff000066",
-                    "padding": {"bottom": 6, "horizontal": 10},
-                }
-            ],
-        }
-    )
+    config = CardGenConfig.parse_obj(TAG_CONFIG)
+    config.text_fields[0].format = format
     fm = {"tags": ["one", "two", "three", "four"]}
     im = fmcardgen.draw.draw(fm, config)
     assert_images_equal(im, Image.open("test_draw_tags_expected.png"))
+
+
+def test_draw_tags_no_bg():
+    config = CardGenConfig.parse_obj(TAG_CONFIG)
+    config.text_fields[0].bg = None
+    fm = {"tags": ["one", "two", "three", "four"]}
+    im = fmcardgen.draw.draw(fm, config)
+    assert_images_equal(im, Image.open("test_draw_tags_no_bg.png"))
 
 
 def assert_images_equal(

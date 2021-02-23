@@ -107,6 +107,7 @@ def test_multiple_sources_requires_format():
 
 def test_config_multi():
     config.TextFieldConfig(multi=True, source="tags", x=0, y=0)
+    config.TextFieldConfig(multi=False, source="tags", x=0, y=0)
 
 
 def test_config_multi_validation():
