@@ -73,25 +73,12 @@ def draw_text_field(im: Image.Image, text: str, field: TextFieldConfig) -> None:
     draw = ImageDraw.Draw(im, mode="RGBA")
 
     if field.bg:
-        x0, y0, x1, y1 = draw.textbbox(xy=(field.x, field.y), text=text, font=font)
-
-        # expand the bounding box to account for padding
-        assert isinstance(field.padding, PaddingConfig)  # for mypy
-        x0 -= field.padding.left
-        y0 -= field.padding.top
-        x1 += field.padding.right
-        y1 += field.padding.bottom
-
-        # When drawing with any transparancy, just drawing directly on to
-        # the background image doesn't actually do compositing, you just get
-        # a semi-transparant "cutout" of the background. To work around this,
-        # draw into a temporary image and then composite it.
-        overlay = Image.new(mode="RGBA", size=im.size, color=(0, 0, 0, 0))
-        ImageDraw.Draw(overlay).rectangle(
-            xy=(x0, y0, x1, y1),
-            fill=to_pil_color(field.bg),
+        _draw_rect(
+            im=im,
+            bbox=draw.textbbox(xy=(field.x, field.y), text=text, font=font),
+            padding=field.padding,
+            color=field.bg,
         )
-        im.alpha_composite(overlay)
 
     assert isinstance(field.fg, Color)  # for mypy
     draw.text(xy=(field.x, field.y), text=text, font=font, fill=to_pil_color(field.fg))
@@ -113,20 +100,44 @@ def draw_tag_field(im: Image.Image, tags: List[str], field: TextFieldConfig) -> 
         width = draw.textlength(text=tag, font=font)
 
         if field.bg:
-            x0 = xy[0] - field.padding.left
-            y0 = xy[1] - field.padding.bottom
-            x1 = xy[0] + width + field.padding.right
-            y1 = xy[1] + height + field.padding.bottom
-
-            overlay = Image.new(mode="RGBA", size=im.size, color=(0, 0, 0, 0))
-            ImageDraw.Draw(overlay).rectangle(
-                xy=(x0, y0, x1, y1), fill=to_pil_color(field.bg)
+            _draw_rect(
+                im=im,
+                bbox=(xy[0], xy[1], xy[0] + width, xy[1] + height),
+                padding=field.padding,
+                color=field.bg,
             )
-            im.alpha_composite(overlay)
 
         assert isinstance(field.fg, Color)
         draw.text(xy=xy, text=tag, font=font, fill=to_pil_color(field.fg))
         xy = (xy[0] + width + spacing, xy[1])
+
+
+def _draw_rect(
+    im: Image.Image,
+    bbox: Tuple[int, int, int, int],
+    padding: PaddingConfig,
+    color: Color,
+):
+    x0, y0, x1, y1 = bbox
+
+    # expand the bounding box to account for padding
+    assert isinstance(padding, PaddingConfig)  # for mypy
+    x0 -= padding.left
+    y0 -= padding.top
+    x1 += padding.right
+    y1 += padding.bottom
+
+    # When drawing with any transparancy, just drawing directly on to
+    # the background image doesn't actually do compositing, you just get
+    # a semi-transparant "cutout" of the background. To work around this,
+    # draw into a temporary image and then composite it.
+    overlay = Image.new(mode="RGBA", size=im.size, color=(0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+    draw.rectangle(
+        xy=(x0, y0, x1, y1),
+        fill=to_pil_color(color),
+    )
+    im.alpha_composite(overlay)
 
 
 def wrap_font_text(font: ImageFont.ImageFont, text: str, max_width: int) -> str:
