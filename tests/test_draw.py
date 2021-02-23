@@ -150,6 +150,32 @@ def test_draw_format_single(format_string):
     assert_images_equal(im, Image.open("test_draw_format_single_expected.png"))
 
 
+@pytest.mark.parametrize("format", [None, "{}"])
+def test_draw_tags(format):
+    config = CardGenConfig.parse_obj(
+        {
+            "template": "template.png",
+            "fields": [
+                {
+                    "source": "tags",
+                    "multi": True,
+                    "format": format,
+                    "spacing": 20,
+                    "x": 120,
+                    "y": 100,
+                    "font": "RobotoCondensed/RobotoCondensed-Regular.ttf",
+                    "font_size": 50,
+                    "bg": "#ff000066",
+                    "padding": {"bottom": 6, "horizontal": 10},
+                }
+            ],
+        }
+    )
+    fm = {"tags": ["one", "two", "three", "four"]}
+    im = fmcardgen.draw.draw(fm, config)
+    assert_images_equal(im, Image.open("test_draw_tags_expected.png"))
+
+
 def assert_images_equal(
     actual: Image.Image, expected: Image.Image, delta: float = 0.01
 ):

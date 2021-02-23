@@ -1,6 +1,10 @@
 from PIL import Image, ImageFont, ImageDraw
 from .config import CardGenConfig, PaddingConfig, TextFieldConfig, DEFAULT_FONT
-from .frontmatter import get_frontmatter_value, get_frontmatter_formatted
+from .frontmatter import (
+    get_frontmatter_list,
+    get_frontmatter_value,
+    get_frontmatter_formatted,
+)
 from pydantic.color import Color
 from typing import List, Tuple, Mapping, cast, Union, Optional
 from textwrap import TextWrapper
@@ -11,8 +15,21 @@ def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
     im = Image.open(cnf.template)
 
     for field in cnf.text_fields:
+        parser = dateutil.parser.parse if field.parse == "datetime" else None
 
-        if isinstance(field.source, list):
+        if field.multi:
+            values = get_frontmatter_list(
+                fm,
+                source=field.source,
+                default=field.default,
+                missing_ok=field.optional,
+                parser=parser,
+            )
+            if field.format:
+                values = [field.format.format(v, **{field.source: v}) for v in values]
+            draw_tag_field(im, values, field)
+
+        elif isinstance(field.source, list):
             if isinstance(field.default, Mapping):
                 defaults = field.default
             else:
@@ -25,9 +42,9 @@ def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
                 defaults=defaults,
                 missing_ok=field.optional,
             )
+            draw_text_field(im, str(value), field)
 
         else:
-            parser = dateutil.parser.parse if field.parse == "datetime" else None
             value = get_frontmatter_value(
                 fm,
                 source=field.source,
@@ -41,8 +58,7 @@ def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
             )
             if field.format:
                 value = field.format.format(value, **{field.source: value})
-
-        draw_text_field(im, str(value), field)
+            draw_text_field(im, str(value), field)
 
     return im
 
@@ -81,12 +97,12 @@ def draw_text_field(im: Image.Image, text: str, field: TextFieldConfig) -> None:
     draw.text(xy=(field.x, field.y), text=text, font=font, fill=to_pil_color(field.fg))
 
 
-def draw_tag_field(im: Image.Image, tags: List[str]) -> None:
-    font = load_font("Arial", 40)
+def draw_tag_field(im: Image.Image, tags: List[str], field: TextFieldConfig) -> None:
+    font = load_font(str(field.font), field.font_size)
 
     draw = ImageDraw.Draw(im)
-    xy = (20, 20)
-    margin = 20
+    xy = (field.x, field.y)
+    spacing = field.spacing + field.padding.left + field.padding.right
 
     # Calculate the height of all the text, and use that as the height for each
     # individual box If we don't do this, different boxes could have different
@@ -95,10 +111,22 @@ def draw_tag_field(im: Image.Image, tags: List[str]) -> None:
 
     for tag in tags:
         width = draw.textlength(text=tag, font=font)
-        bbox = (xy[0], xy[1], xy[0] + width, xy[1] + height)
-        draw.rectangle(xy=bbox, fill=(0, 0, 0))
-        draw.text(xy=xy, text=tag, font=font, fill=(255, 255, 255))
-        xy = (xy[0] + width + margin, xy[1])
+
+        if field.bg:
+            x0 = xy[0] - field.padding.left
+            y0 = xy[1] - field.padding.bottom
+            x1 = xy[0] + width + field.padding.right
+            y1 = xy[1] + height + field.padding.bottom
+
+            overlay = Image.new(mode="RGBA", size=im.size, color=(0, 0, 0, 0))
+            ImageDraw.Draw(overlay).rectangle(
+                xy=(x0, y0, x1, y1), fill=to_pil_color(field.bg)
+            )
+            im.alpha_composite(overlay)
+
+        assert isinstance(field.fg, Color)
+        draw.text(xy=xy, text=tag, font=font, fill=to_pil_color(field.fg))
+        xy = (xy[0] + width + spacing, xy[1])
 
 
 def wrap_font_text(font: ImageFont.ImageFont, text: str, max_width: int) -> str:
