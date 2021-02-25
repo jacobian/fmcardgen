@@ -23,8 +23,9 @@ CONFIG = {
 
 
 @pytest.fixture(autouse=True)
-def set_working_directory(monkeypatch):
+def set_working_directory_and_layout_engine(monkeypatch):
     monkeypatch.chdir(Path(__file__).parent)
+    monkeypatch.setattr(fmcardgen.draw, "LAYOUT_ENGINE", ImageFont.LAYOUT_BASIC)
 
 
 @pytest.fixture()

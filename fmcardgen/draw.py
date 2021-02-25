@@ -179,11 +179,16 @@ def wrap_font_text(font: ImageFont.ImageFont, text: str, max_width: int) -> str:
     return "\n".join("".join(line).strip() for line in lines).strip()
 
 
+# This is an injection point for tests, so they can force the use of the same
+# layout engine, otherwise tests fail when libraqm is installed.
+LAYOUT_ENGINE = None
+
+
 def load_font(font: str, size: Optional[int]) -> ImageFont.ImageFont:
     if font == DEFAULT_FONT:
         return ImageFont.load_default()
     else:
-        return ImageFont.truetype(font, size)
+        return ImageFont.truetype(font, size, layout_engine=LAYOUT_ENGINE)
 
 
 PILColorTuple = Union[Tuple[int, int, int], Tuple[int, int, int, int]]
