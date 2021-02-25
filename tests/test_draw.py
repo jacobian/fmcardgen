@@ -188,10 +188,16 @@ def test_draw_tags_no_bg():
 
 
 def assert_images_equal(
-    actual: Image.Image, expected: Image.Image, delta: float = 0.01
+    actual: Image.Image,
+    expected: Image.Image,
+    delta: float = 0.01,
+    save_location: Path = None,
 ):
     assert actual.size == expected.size, "expected images to be the same dimensions"
     assert actual.mode == expected.mode, "expected images to be the same mode"
+
+    if save_location is None:
+        save_location = Path(__file__).parent.parent.resolve()
 
     # Diff algorithm adapted from https://github.com/nicolashahn/diffimg
     diff = ImageChops.difference(actual, expected)
@@ -202,7 +208,6 @@ def assert_images_equal(
     diff_ratio = sum_channel_values / max_all_channels
 
     if diff_ratio > delta:
-        save_location = Path(__file__).parent.parent.resolve()
         token = secrets.token_urlsafe(8)
         actual_path = save_location / f"{token}-actual.png"
         expected_path = save_location / f"{token}-expected.png"
@@ -223,3 +228,12 @@ def assert_images_equal(
             f"    expected: {expected_path}\n"
             f"    diff: {diff_path}\n"
         )
+
+
+@pytest.mark.xfail()
+def test_assert_images_equal(tmp_path: Path):
+    assert_images_equal(
+        Image.open("test_draw_expected.png"),
+        Image.open("test_draw_wrapped.png"),
+        save_location=tmp_path,
+    )
