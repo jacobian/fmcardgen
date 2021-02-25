@@ -11,8 +11,36 @@ def set_working_directory(monkeypatch):
 
 def test_cli(tmp_path: Path):
     runner = CliRunner()
-    output = tmp_path / "out.png"
-    runner.invoke(
+    output = tmp_path / "{file_stem}.png"
+    result = runner.invoke(
         cli, ["--config", "config.yml", "--output", str(output), "example.md"]
     )
-    assert output.is_file()
+    assert result.exit_code == 0
+    assert (tmp_path / "example.png").is_file()
+
+
+def test_cli_directory_recursive(tmp_path: Path):
+    runner = CliRunner()
+    output = tmp_path / "{file_stem}.png"
+    result = runner.invoke(
+        cli,
+        [
+            "--config",
+            "config.yml",
+            "--output",
+            str(output),
+            "--recursive",
+            ".",
+            "--ext",
+            "md",
+        ],
+    )
+    assert result.exit_code == 0
+    assert (tmp_path / "example.png").is_file()
+
+
+def test_cli_directory_requires_recursive(tmp_path: Path):
+    runner = CliRunner()
+    result = runner.invoke(cli, ["."])
+    assert result.exit_code == 1
+    assert "--recursive" in result.stdout
