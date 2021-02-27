@@ -60,7 +60,8 @@ def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
             )
             if field.format:
                 value = field.format.format(value, **{field.source: value})
-            draw_text_field(im, str(value), field)
+            if value is not None:
+                draw_text_field(im, str(value), field)
 
     return im
 

@@ -187,6 +187,15 @@ def test_draw_tags_no_bg():
     assert_images_equal(im, Image.open("test_draw_tags_no_bg.png"))
 
 
+def test_draw_missing_ok(config):
+    """
+    check that drawing a missing field with optional=True doesn't draw anything
+    """
+    config.text_fields[0].optional = True
+    im = fmcardgen.draw.draw({}, config)
+    assert_images_equal(im, Image.open("template.png"))
+
+
 def assert_images_equal(
     actual: Image.Image,
     expected: Image.Image,
