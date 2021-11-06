@@ -121,3 +121,10 @@ def test_config_multi_validation():
         config.TextFieldConfig(
             multi=True, source="x", default={"x": 1, "y": 2}, x=0, y=0
         )
+
+
+def test_parser_multiple_sources():
+    config.TextFieldConfig(
+        source=["x", "y"], parse={"x": "datetime"}, format="{x}", x=0, y=0
+    )
+    # test for can't have multiple parsers with multi=true

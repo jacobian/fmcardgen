@@ -196,6 +196,30 @@ def test_draw_missing_ok(config):
     assert_images_equal(im, Image.open("template.png"))
 
 
+def test_draw_parser_multiple_sources():
+    config = CardGenConfig.parse_obj(
+        {
+            "template": "template.png",
+            "fields": [
+                {
+                    "source": ["author", "date"],
+                    "format": "{author} - {date:%B %Y}",
+                    "parse": {"date": "datetime"},
+                    "x": "100",
+                    "y": 100,
+                    "font": "RobotoCondensed/RobotoCondensed-Bold.ttf",
+                    "font_size": 100,
+                }
+            ],
+        }
+    )
+    fm = {"date": "2021-01-01", "author": "Ringo Starr"}
+    im = fmcardgen.draw.draw(fm, config)
+    assert_images_equal(
+        im, Image.open("test_draw_parser_multiple_sources_expected.png")
+    )
+
+
 def assert_images_equal(
     actual: Image.Image,
     expected: Image.Image,

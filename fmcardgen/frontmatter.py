@@ -1,4 +1,6 @@
-from typing import Optional, List, Mapping, Any, Callable
+from typing import Dict, Optional, List, Mapping, Any, Callable
+
+ParserCallback = Callable[[str], Any]
 
 
 def get_frontmatter_value(
@@ -6,7 +8,7 @@ def get_frontmatter_value(
     source: str,
     default: Optional[str] = None,
     missing_ok: bool = False,
-    parser: Optional[Callable[[str], Any]] = None,
+    parser: Optional[ParserCallback] = None,
 ) -> str:
     value = fm.get(source, default)
     if isinstance(value, list):
@@ -24,7 +26,7 @@ def get_frontmatter_list(
     source: str,
     default: Optional[str] = None,
     missing_ok: bool = False,
-    parser: Optional[Callable[[str], Any]] = None,
+    parser: Optional[ParserCallback] = None,
 ) -> List[str]:
     value = fm.get(source, default)
     if value is None:
@@ -45,12 +47,18 @@ def get_frontmatter_formatted(
     format: str,
     sources: List[str],
     defaults: Optional[Mapping[str, Any]] = None,
+    parsers: Optional[Dict[str, ParserCallback]] = None,
     missing_ok: bool = False,
 ) -> str:
     defaults = {} if defaults is None else defaults
+    parsers = {} if parsers is None else parsers
     values = {
         source: get_frontmatter_value(
-            fm, source, default=defaults.get(source, ""), missing_ok=missing_ok
+            fm,
+            source,
+            default=defaults.get(source, ""),
+            parser=parsers.get(source, ""),
+            missing_ok=missing_ok,
         )
         for source in sources
     }

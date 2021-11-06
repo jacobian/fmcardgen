@@ -6,7 +6,7 @@ from .frontmatter import (
     get_frontmatter_formatted,
 )
 from pydantic.color import Color
-from typing import List, Tuple, Mapping, cast, Union, Optional
+from typing import Callable, List, Tuple, Mapping, cast, Union, Optional
 from textwrap import TextWrapper
 import dateutil.parser
 
@@ -15,7 +15,6 @@ def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
     im = Image.open(cnf.template)
 
     for field in cnf.text_fields:
-        parser = dateutil.parser.parse if field.parse == "datetime" else None
 
         if field.multi:
             values = get_frontmatter_list(
@@ -23,7 +22,7 @@ def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
                 source=str(field.source),
                 default=str(field.default),
                 missing_ok=field.optional,
-                parser=parser,
+                parser=_get_parser(field.parse),
             )
             if field.format:
                 values = [
@@ -37,11 +36,19 @@ def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
             else:
                 defaults = {source: field.default or "" for source in field.source}
 
+            if isinstance(field.parse, Mapping):
+                parsers = {
+                    source: _get_parser(field.parse[source]) for source in field.parse
+                }
+            else:
+                parsers = {source: _get_parser(field.parse) for source in field.source}
+
             value = get_frontmatter_formatted(
                 fm,
                 format=str(field.format),
                 sources=field.source,
                 defaults=defaults,
+                parsers=parsers,
                 missing_ok=field.optional,
             )
             draw_text_field(im, str(value), field)
@@ -56,7 +63,7 @@ def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
                     else field.default
                 ),
                 missing_ok=field.optional,
-                parser=parser,
+                parser=_get_parser(field.parse),
             )
             if field.format:
                 value = field.format.format(value, **{field.source: value})
@@ -210,3 +217,7 @@ def to_pil_color(color: Color) -> PILColorTuple:
     else:
         r, g, b, a = cast(Tuple[int, int, int, float], c)
         return r, g, b, round(a * 255)
+
+
+def _get_parser(name: str) -> Optional[Callable]:
+    return dateutil.parser.parse if name == "datetime" else None

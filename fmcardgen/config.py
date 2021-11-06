@@ -66,7 +66,7 @@ class TextFieldConfig(BaseModel):
     padding: Union[PaddingConfig, int] = PaddingConfig()
     max_width: Optional[int]
     wrap: bool = True
-    parse: Optional[Literal["datetime"]]
+    parse: Union[Dict[str, Literal["datetime"]], Literal["datetime"], None] = None
     multi: bool = False
     spacing: int = 20
 
@@ -181,6 +181,8 @@ class CardGenConfig(BaseModel):
         Set fonts in text_fields to actual paths, given in the font config
 
         FIXME: PIL also (I think?) supports system fonts, but this won't.
+        FIXME: font paths are relative to where fmcardgen is _run_, not
+               to where the config file is.
         """
         fonts = {str(f.name).lower(): f.path for f in self.fonts}
         fonts["default"] = DEFAULT_FONT

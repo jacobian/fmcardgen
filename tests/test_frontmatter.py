@@ -103,3 +103,13 @@ def test_get_frontmatter_list_format():
         TEST_FRONTMATTER, source="dates", parser=dateutil.parser.parse
     )
     assert expected == actual
+
+
+def test_get_frontmatter_formatted_parser():
+    value = get_frontmatter_formatted(
+        TEST_FRONTMATTER,
+        sources=["title", "date"],
+        format="{title} - {date:%Y}",
+        parsers={"date": dateutil.parser.parse},
+    )
+    assert value == "A Title - 2021"
