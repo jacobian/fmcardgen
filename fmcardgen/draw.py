@@ -1,14 +1,23 @@
-from PIL import Image, ImageFont, ImageDraw
-from .config import CardGenConfig, PaddingConfig, TextFieldConfig, DEFAULT_FONT
+from textwrap import TextWrapper
+from typing import Callable, List, Literal, Mapping, Optional, Tuple, Union, cast
+
+import dateutil.parser
+from PIL import Image, ImageDraw, ImageFont
+from pydantic.color import Color
+
+from .config import (
+    DEFAULT_FONT,
+    CardGenConfig,
+    PaddingConfig,
+    ParserOptions,
+    TextFieldConfig,
+)
 from .frontmatter import (
+    ParserCallback,
+    get_frontmatter_formatted,
     get_frontmatter_list,
     get_frontmatter_value,
-    get_frontmatter_formatted,
 )
-from pydantic.color import Color
-from typing import Callable, List, Tuple, Mapping, cast, Union, Optional
-from textwrap import TextWrapper
-import dateutil.parser
 
 
 def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
@@ -17,6 +26,7 @@ def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
     for field in cnf.text_fields:
 
         if field.multi:
+            assert not isinstance(field.parse, Mapping)
             values = get_frontmatter_list(
                 fm,
                 source=str(field.source),
@@ -36,12 +46,17 @@ def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
             else:
                 defaults = {source: field.default or "" for source in field.source}
 
+            parsers = {}
             if isinstance(field.parse, Mapping):
-                parsers = {
-                    source: _get_parser(field.parse[source]) for source in field.parse
-                }
-            else:
-                parsers = {source: _get_parser(field.parse) for source in field.source}
+                for source in field.parse:
+                    parser = _get_parser(field.parse[source])
+                    if parser:
+                        parsers[source] = parser
+            elif field.parse is not None:
+                for source in field.source:
+                    parser = _get_parser(field.parse)
+                    if parser:
+                        parsers[source] = parser
 
             value = get_frontmatter_formatted(
                 fm,
@@ -54,6 +69,7 @@ def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
             draw_text_field(im, str(value), field)
 
         else:
+            assert not isinstance(field.parse, Mapping)
             value = get_frontmatter_value(
                 fm,
                 source=field.source,
@@ -219,5 +235,5 @@ def to_pil_color(color: Color) -> PILColorTuple:
         return r, g, b, round(a * 255)
 
 
-def _get_parser(name: str) -> Optional[Callable]:
+def _get_parser(name: Optional[ParserOptions]) -> Optional[ParserCallback]:
     return dateutil.parser.parse if name == "datetime" else None
