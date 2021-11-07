@@ -22,6 +22,8 @@ if TYPE_CHECKING:
 else:
     from pydantic import FilePath
 
+ParserOptions = Literal["datetime"]
+
 
 class PaddingConfig(BaseModel):
     horizontal: int = 0
@@ -66,7 +68,7 @@ class TextFieldConfig(BaseModel):
     padding: Union[PaddingConfig, int] = PaddingConfig()
     max_width: Optional[int]
     wrap: bool = True
-    parse: Union[Dict[str, Literal["datetime"]], Literal["datetime"], None] = None
+    parse: Union[Dict[str, ParserOptions], ParserOptions, None] = None
     multi: bool = False
     spacing: int = 20
 

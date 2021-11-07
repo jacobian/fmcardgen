@@ -1,76 +1,152 @@
-from PIL import Image, ImageFont, ImageDraw
-from .config import CardGenConfig, PaddingConfig, TextFieldConfig, DEFAULT_FONT
+from textwrap import TextWrapper
+from typing import (
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+)
+
+import dateutil.parser
+from PIL import Image, ImageDraw, ImageFont
+from pydantic.color import Color
+
+from .config import (
+    DEFAULT_FONT,
+    CardGenConfig,
+    PaddingConfig,
+    ParserOptions,
+    TextFieldConfig,
+)
 from .frontmatter import (
+    ParserCallback,
+    get_frontmatter_formatted,
     get_frontmatter_list,
     get_frontmatter_value,
-    get_frontmatter_formatted,
 )
-from pydantic.color import Color
-from typing import Callable, List, Tuple, Mapping, cast, Union, Optional
-from textwrap import TextWrapper
-import dateutil.parser
 
 
 def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
     im = Image.open(cnf.template)
-
     for field in cnf.text_fields:
-
         if field.multi:
-            values = get_frontmatter_list(
-                fm,
-                source=str(field.source),
-                default=str(field.default),
-                missing_ok=field.optional,
-                parser=_get_parser(field.parse),
-            )
-            if field.format:
-                values = [
-                    field.format.format(v, **{str(field.source): v}) for v in values
-                ]
-            draw_tag_field(im, values, field)
-
+            _draw_multi(fm, im, field)
         elif isinstance(field.source, list):
-            if isinstance(field.default, Mapping):
-                defaults = field.default
-            else:
-                defaults = {source: field.default or "" for source in field.source}
-
-            if isinstance(field.parse, Mapping):
-                parsers = {
-                    source: _get_parser(field.parse[source]) for source in field.parse
-                }
-            else:
-                parsers = {source: _get_parser(field.parse) for source in field.source}
-
-            value = get_frontmatter_formatted(
-                fm,
-                format=str(field.format),
-                sources=field.source,
-                defaults=defaults,
-                parsers=parsers,
-                missing_ok=field.optional,
-            )
-            draw_text_field(im, str(value), field)
-
+            _draw_multi_source(fm, im, field)
         else:
-            value = get_frontmatter_value(
-                fm,
-                source=field.source,
-                default=(
-                    field.default.get(field.source, None)
-                    if isinstance(field.default, Mapping)
-                    else field.default
-                ),
-                missing_ok=field.optional,
-                parser=_get_parser(field.parse),
-            )
-            if field.format:
-                value = field.format.format(value, **{field.source: value})
-            if value is not None:
-                draw_text_field(im, str(value), field)
+            _draw_single_source(fm, im, field)
 
     return im
+
+
+def _draw_single_source(fm: dict, im: Image.Image, field: TextFieldConfig) -> None:
+    """
+    Draw a field where the `source` is a single, e.g.::
+
+        [[field]]
+        source = "title"
+
+    """
+    assert isinstance(field.source, str)
+    assert not isinstance(field.parse, Mapping)
+    assert not isinstance(field.default, Mapping)
+
+    value = get_frontmatter_value(
+        fm,
+        source=field.source,
+        default=field.default,
+        missing_ok=field.optional,
+        parser=_get_parser(field.parse),
+    )
+    if field.format:
+        value = field.format.format(value, **{field.source: value})
+    if value is not None:
+        draw_text_field(im, str(value), field)
+
+
+def _draw_multi_source(fm: dict, im: Image.Image, field: TextFieldConfig) -> None:
+    """
+    Draw a field which has multiple sources -- i.e.::
+
+        [[field]]
+        source = ["author", "title"]
+        format = "{title} by {author}"
+    """
+
+    assert isinstance(field.source, list)
+
+    # For multi-source fields, `default`, `parse` can behave in two different
+    # ways. They can be a single item, e.g.::
+    #
+    #   [[field]]
+    #   source = ["author", "title"]
+    #   default = "MISSING"
+    #
+    # or they could can be a dict::
+    #
+    #   [[field]]
+    #   source = ["author", "title"]
+    #   default = {"author": "Joe Default", "title": "MISSING"}
+    #
+    # The following code handles both cases, by converting single items to dicts
+    # that map to _all_ fields.
+
+    if isinstance(field.default, Mapping):
+        defaults = field.default
+    else:
+        defaults = {source: field.default or "" for source in field.source}
+
+    parsers = _get_parsers(field)
+
+    value = get_frontmatter_formatted(
+        fm,
+        format=str(field.format),
+        sources=field.source,
+        defaults=defaults,
+        parsers=parsers,
+        missing_ok=field.optional,
+    )
+    draw_text_field(im, str(value), field)
+
+
+def _get_parsers(field: TextFieldConfig):
+    parsers = {}
+    if isinstance(field.parse, Mapping):
+        for source in field.parse:
+            parser = _get_parser(field.parse[source])
+            assert parser is not None
+            parsers[source] = parser
+    elif field.parse is not None:
+        for source in field.source:
+            parser = _get_parser(field.parse)
+            assert parser is not None
+            parsers[source] = parser
+    return parsers
+
+
+def _draw_multi(fm: dict, im: Image.Image, field: TextFieldConfig) -> None:
+    """
+    Draw a multi-value field, e.g. something like "tags", where the field can
+    have multiple values that are all drawn.
+
+    This is diferent from a field with multiple _sources_, see
+    `_draw_multi_source`. Sorry about the confusing name.
+    """
+
+    assert not isinstance(field.parse, Mapping)
+    parser = _get_parser(field.parse)
+
+    values = get_frontmatter_list(
+        fm,
+        source=str(field.source),
+        default=str(field.default),
+        missing_ok=field.optional,
+        parser=parser,
+    )
+    if field.format:
+        values = [field.format.format(v, **{str(field.source): v}) for v in values]
+    draw_tag_field(im, values, field)
 
 
 def draw_text_field(im: Image.Image, text: str, field: TextFieldConfig) -> None:
@@ -219,5 +295,5 @@ def to_pil_color(color: Color) -> PILColorTuple:
         return r, g, b, round(a * 255)
 
 
-def _get_parser(name: str) -> Optional[Callable]:
+def _get_parser(name: Optional[ParserOptions]) -> Optional[ParserCallback]:
     return dateutil.parser.parse if name == "datetime" else None
