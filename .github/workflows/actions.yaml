@@ -19,6 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
+        id: setup-python
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -26,7 +27,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.local
-          key: poetry-${{ matrix.python-version }}-0
+          key: poetry-${{ steps.setup-python.outputs.python-version }}-0
 
       - uses: snok/install-poetry@v1
         with:
@@ -38,7 +39,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: .venv
-          key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
 
       - run: poetry install --no-interaction --no-root
         if: steps.cache-deps.outputs.cache-hit != 'true'
