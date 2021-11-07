@@ -97,17 +97,7 @@ def _draw_multi_source(fm: dict, im: Image.Image, field: TextFieldConfig) -> Non
     else:
         defaults = {source: field.default or "" for source in field.source}
 
-    parsers = {}
-    if isinstance(field.parse, Mapping):
-        for source in field.parse:
-            parser = _get_parser(field.parse[source])
-            if parser:
-                parsers[source] = parser
-    elif field.parse is not None:
-        for source in field.source:
-            parser = _get_parser(field.parse)
-            if parser:
-                parsers[source] = parser
+    parsers = _get_parsers(field)
 
     value = get_frontmatter_formatted(
         fm,
@@ -118,6 +108,21 @@ def _draw_multi_source(fm: dict, im: Image.Image, field: TextFieldConfig) -> Non
         missing_ok=field.optional,
     )
     draw_text_field(im, str(value), field)
+
+
+def _get_parsers(field: TextFieldConfig):
+    parsers = {}
+    if isinstance(field.parse, Mapping):
+        for source in field.parse:
+            parser = _get_parser(field.parse[source])
+            assert parser is not None
+            parsers[source] = parser
+    elif field.parse is not None:
+        for source in field.source:
+            parser = _get_parser(field.parse)
+            assert parser is not None
+            parsers[source] = parser
+    return parsers
 
 
 def _draw_multi(fm: dict, im: Image.Image, field: TextFieldConfig) -> None:
