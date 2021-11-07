@@ -2,7 +2,6 @@ from textwrap import TextWrapper
 from typing import (
     List,
     Mapping,
-    NoReturn,
     Optional,
     Tuple,
     Union,
@@ -41,7 +40,7 @@ def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
     return im
 
 
-def _draw_single_source(fm, im, field):
+def _draw_single_source(fm: dict, im: Image.Image, field: TextFieldConfig) -> None:
     """
     Draw a field where the `source` is a single, e.g.::
 
@@ -49,6 +48,7 @@ def _draw_single_source(fm, im, field):
         source = "title"
 
     """
+    assert isinstance(field.source, str)
     assert not isinstance(field.parse, Mapping)
     assert not isinstance(field.default, Mapping)
 
@@ -65,7 +65,7 @@ def _draw_single_source(fm, im, field):
         draw_text_field(im, str(value), field)
 
 
-def _draw_multi_source(fm: dict, im: Image.Image, field: TextFieldConfig) -> NoReturn:
+def _draw_multi_source(fm: dict, im: Image.Image, field: TextFieldConfig) -> None:
     """
     Draw a field which has multiple sources -- i.e.::
 
@@ -73,6 +73,8 @@ def _draw_multi_source(fm: dict, im: Image.Image, field: TextFieldConfig) -> NoR
         source = ["author", "title"]
         format = "{title} by {author}"
     """
+
+    assert isinstance(field.source, list)
 
     # For multi-source fields, `default`, `parse` can behave in two different
     # ways. They can be a single item, e.g.::
@@ -118,7 +120,7 @@ def _draw_multi_source(fm: dict, im: Image.Image, field: TextFieldConfig) -> NoR
     draw_text_field(im, str(value), field)
 
 
-def _draw_multi(fm: dict, im: Image.Image, field: TextFieldConfig) -> NoReturn:
+def _draw_multi(fm: dict, im: Image.Image, field: TextFieldConfig) -> None:
     """
     Draw a multi-value field, e.g. something like "tags", where the field can
     have multiple values that are all drawn.
