@@ -1,31 +1,31 @@
 [tool.poetry]
+authors = ["Jacob Kaplan-Moss <jacob@jacobian.org>"]
+description = ""
 name = "fmcardgen"
 version = "0.1.0"
-description = ""
-authors = ["Jacob Kaplan-Moss <jacob@jacobian.org>"]
 
 [tool.poetry.scripts]
 fmcardgen = 'fmcardgen.cli:cli'
 
 [tool.pytest.ini_options]
-addopts = "--cov=fmcardgen --cov=tests --no-cov-on-fail --cov-branch --cov-report term --cov-report html"
+addopts = "--cov=fmcardgen --cov=tests --no-cov-on-fail --cov-branch --cov-report term --cov-report html --cov-fail-under=100"
 testpaths = "tests"
 
 [tool.poetry.dependencies]
-python = "^3.8"
-typer = {extras = ["all"], version = "^0.3.2"}
 Pillow = "^8.1.0"
-python-frontmatter = "^0.5.0"
-toml = "^0.10.2"
 pydantic = "^1.7.3"
-rich = "^9.11.0"
+python = "^3.8"
 python-dateutil = "^2.8.1"
+python-frontmatter = "^0.5.0"
+rich = "^9.11.0"
+toml = "^0.10.2"
+typer = {extras = ["all"], version = "^0.3.2"}
 
 [tool.poetry.dev-dependencies]
+mypy = "^0.812"
 pytest = "^6.2.2"
 pytest-cov = "^2.11.1"
-mypy = "^0.812"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0"]
