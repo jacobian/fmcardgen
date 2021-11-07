@@ -20,6 +20,7 @@ python-frontmatter = "^0.5.0"
 rich = "^9.11.0"
 toml = "^0.10.2"
 typer = {extras = ["all"], version = "^0.3.2"}
+pytest = "^6.2.5"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.910"
