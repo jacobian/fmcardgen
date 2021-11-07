@@ -12,8 +12,8 @@ addopts = "--cov=fmcardgen --cov=tests --no-cov-on-fail --cov-branch --cov-repor
 testpaths = "tests"
 
 [tool.poetry.dependencies]
-Pillow = "^8.1.0"
-pydantic = "^1.7.3"
+Pillow = "^8.3.2"
+pydantic = "^1.8.2"
 python = "^3.8"
 python-dateutil = "^2.8.1"
 python-frontmatter = "^0.5.0"
