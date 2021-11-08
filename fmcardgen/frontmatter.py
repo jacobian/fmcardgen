@@ -52,12 +52,13 @@ def get_frontmatter_formatted(
 ) -> str:
     defaults = {} if defaults is None else defaults
     parsers = {} if parsers is None else parsers
+
     values = {
         source: get_frontmatter_value(
             fm,
             source,
             default=defaults.get(source, ""),
-            parser=parsers.get(source, ""),
+            parser=parsers.get(source),
             missing_ok=missing_ok,
         )
         for source in sources

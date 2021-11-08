@@ -2,10 +2,11 @@ import secrets
 import pytest
 import fmcardgen.draw
 import datetime
-from fmcardgen.config import CardGenConfig, DEFAULT_FONT
+from fmcardgen.config import CardGenConfig, TextFieldConfig, DEFAULT_FONT
 from pathlib import Path
 from pydantic.color import Color
 from PIL import Image, ImageStat, ImageChops, ImageFont
+import dateutil.parser
 
 CONFIG = {
     "template": "template.png",
@@ -218,6 +219,24 @@ def test_draw_parser_multiple_sources():
     assert_images_equal(
         im, Image.open("test_draw_parser_multiple_sources_expected.png")
     )
+
+
+def test_draw_get_parsers():
+    """
+    Test a few other versions of `parse` with mulitple fields,
+    not covered by the more integration-y test above
+    """
+    field = TextFieldConfig.parse_obj(
+        {
+            "x": 0,
+            "y": 0,
+            "source": ["date1", "date2"],
+            "format": "{date1:%Y} {date2:%Y}",
+            "parse": "datetime",
+        }
+    )
+    parsers = fmcardgen.draw._get_parsers(field)
+    assert parsers == {"date1": dateutil.parser.parse, "date2": dateutil.parser.parse}
 
 
 def assert_images_equal(
