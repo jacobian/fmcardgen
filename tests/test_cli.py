@@ -9,14 +9,27 @@ def set_working_directory(monkeypatch):
     monkeypatch.chdir(Path(__file__).parent)
 
 
-def test_cli(tmp_path: Path):
+@pytest.mark.parametrize(
+    ["input", "output"],
+    [
+        ("example.md", "example.png"),
+        ("example-bundle/index.md", "example-bundle.png"),
+    ],
+)
+def test_cli(tmp_path: Path, input: str, output: str):
     runner = CliRunner()
-    output = tmp_path / "{file_stem}.png"
     result = runner.invoke(
-        cli, ["--config", "config.yml", "--output", str(output), "example.md"]
+        cli,
+        [
+            "--config",
+            "config.yml",
+            "--output",
+            str(tmp_path / "{file_stem}.png"),
+            input,
+        ],
     )
     assert result.exit_code == 0
-    assert (tmp_path / "example.png").is_file()
+    assert (tmp_path / output).is_file()
 
 
 def test_cli_directory_recursive(tmp_path: Path):
