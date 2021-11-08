@@ -68,7 +68,17 @@ def main(
 def _generate(post: Path, config: CardGenConfig, output: str) -> None:
     fm, _ = frontmatter.parse(post.read_text())
     im = draw(fm, config)
-    dest = output.format(**dict(fm, file_name=post.name, file_stem=post.stem))
+
+    # handle Hugo-style bundles -- bundle/index.md or bundle/_index.md --
+    # by using the parent directory name, if relevant
+    if post.stem in ("index", "_index"):
+        file_name = post.parent.name
+        file_stem = post.parent.stem
+    else:
+        file_name = post.name
+        file_stem = post.stem
+
+    dest = output.format(**dict(fm, file_name=file_name, file_stem=file_stem))
     im.save(dest)
     print(post, "->", dest)
 
