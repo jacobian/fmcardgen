@@ -59,9 +59,9 @@ def _draw_single_source(fm: dict, im: Image.Image, field: TextFieldConfig) -> No
         missing_ok=field.optional,
         parser=_get_parser(field.parse),
     )
-    if field.format:
-        value = field.format.format(value, **{field.source: value})
-    if value is not None:
+    if value:
+        if field.format:
+            value = field.format.format(value, **{field.source: value})
         draw_text_field(im, str(value), field)
 
 
