@@ -1,12 +1,5 @@
 from textwrap import TextWrapper
-from typing import (
-    List,
-    Mapping,
-    Optional,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import List, Mapping, Optional, Tuple, Union, cast
 
 import dateutil.parser
 from PIL import Image, ImageDraw, ImageFont
@@ -183,7 +176,8 @@ def draw_tag_field(im: Image.Image, tags: List[str], field: TextFieldConfig) -> 
     # Calculate the height of all the text, and use that as the height for each
     # individual box If we don't do this, different boxes could have different
     # calculated heights because of ascenders/descenders.
-    _, height = draw.textsize(text=" ".join(tags), font=font)
+    _, top, _, bottom = draw.textbbox(xy=xy, text=" ".join(tags), font=font)
+    height = bottom - top
 
     for tag in tags:
         width = draw.textlength(text=tag, font=font)
@@ -237,7 +231,7 @@ def wrap_font_text(font: ImageFont.ImageFont, text: str, max_width: int) -> str:
     cur_line_width = 0
 
     for chunk in chunks:
-        width, _ = font.getsize(chunk)
+        width = int(font.getlength(chunk))
 
         # If this chunk makes our line too long...
         if cur_line_width + width > max_width:
