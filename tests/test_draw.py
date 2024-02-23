@@ -1,12 +1,14 @@
-import secrets
-import pytest
-import fmcardgen.draw
 import datetime
-from fmcardgen.config import CardGenConfig, TextFieldConfig, DEFAULT_FONT
+import secrets
 from pathlib import Path
-from pydantic.color import Color
-from PIL import Image, ImageStat, ImageChops, ImageFont
+
 import dateutil.parser
+import pytest
+from PIL import Image, ImageChops, ImageFont, ImageStat
+from pydantic.color import Color
+
+import fmcardgen.draw
+from fmcardgen.config import DEFAULT_FONT, CardGenConfig, TextFieldConfig
 
 CONFIG = {
     "template": "template.png",
@@ -26,7 +28,7 @@ CONFIG = {
 @pytest.fixture(autouse=True)
 def set_working_directory_and_layout_engine(monkeypatch):
     monkeypatch.chdir(Path(__file__).parent)
-    monkeypatch.setattr(fmcardgen.draw, "LAYOUT_ENGINE", ImageFont.LAYOUT_BASIC)
+    monkeypatch.setattr(fmcardgen.draw, "LAYOUT_ENGINE", ImageFont.Layout.BASIC)
 
 
 @pytest.fixture()
@@ -82,7 +84,6 @@ def test_wrap_font_text_long_words():
         "supercalifragilisticexpialidocious and\n"
         "thus may have trouble wrapping."
     )
-
 
 def test_wrap_font_text_extra_long_words():
     font = ImageFont.truetype("RobotoCondensed/RobotoCondensed-Bold.ttf", 40)
