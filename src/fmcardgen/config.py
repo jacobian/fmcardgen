@@ -9,8 +9,8 @@ from PIL import ImageFont
 from pydantic import (
     BaseModel,
     Field,
+    field_validator,
     model_validator,
-    validator,
 )
 from pydantic.color import Color
 
@@ -77,13 +77,15 @@ class TextFieldConfig(BaseModel):
         extra = "forbid"
         validate_assignment = True
 
-    @validator("padding")
+    @field_validator("padding")
+    @classmethod
     def check_padding(cls, value: Union[PaddingConfig, int]) -> PaddingConfig:
         if not isinstance(value, PaddingConfig):
             return PaddingConfig(top=value, left=value, bottom=value, right=value)
         return value
 
-    @validator("source")
+    @field_validator("source")
+    @classmethod
     def check_source(
         cls, value: Union[str, List[str]], values: Dict
     ) -> Union[str, List[str]]:
@@ -91,7 +93,8 @@ class TextFieldConfig(BaseModel):
             raise ValueError("can't have multiple sources without providing format")
         return value
 
-    @validator("multi")
+    @field_validator("multi")
+    @classmethod
     def check_multi(cls, value: bool, values: Dict) -> bool:
         if value:
             if "source" in values and isinstance(values["source"], list):
@@ -109,7 +112,8 @@ class FontConfig(BaseModel):
         extra = "forbid"
         validate_assignment = True
 
-    @validator("path")
+    @field_validator("path")
+    @classmethod
     def check_font(cls, value: FilePath) -> FilePath:
         try:
             ImageFont.truetype(str(value), size=12)
@@ -117,7 +121,8 @@ class FontConfig(BaseModel):
             raise ValueError(f"couldn't open font {value}: {e}") from e
         return value
 
-    @validator("name")
+    @field_validator("name")
+    @classmethod
     def check_name(cls, value: Optional[str], values: Dict) -> str:
         return value if value else values["path"].stem
 
