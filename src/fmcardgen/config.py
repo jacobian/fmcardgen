@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-import yaml
-import toml
 from pathlib import Path
-from typing import Literal, Mapping, Optional, List, Union, Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, List, Literal, Mapping, Optional, Union
+
+import toml
+import yaml
+from PIL import ImageFont
 from pydantic import (
     BaseModel,
     Field,
-    root_validator,
+    model_validator,
     validator,
 )
 from pydantic.color import Color
-from PIL import ImageFont
 
 DEFAULT_FONT = "__DEFAULT__"
 
@@ -33,7 +34,7 @@ class PaddingConfig(BaseModel):
     bottom: int = 0
     right: int = 0
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def check_padding(cls, values: Dict) -> Dict:
         if "horizontal" in values:
             for conflict in ("left", "right"):
@@ -55,18 +56,18 @@ class PaddingConfig(BaseModel):
 class TextFieldConfig(BaseModel):
     # NB: need to define format before source so that the source validator below
     # works. See https://pydantic-docs.helpmanual.io/usage/models/#field-ordering.
-    format: Optional[str]
+    format: Optional[str] = None
     source: Union[str, List[str]]
     optional: bool = False
-    default: Union[str, Dict[str, str], None]
+    default: Union[str, Dict[str, str], None] = None
     x: int
     y: int
-    font: Union[str, Path, None]
-    font_size: Optional[int]
-    fg: Optional[Color]
-    bg: Optional[Color]
+    font: Union[str, Path, None] = None
+    font_size: Optional[int] = None
+    fg: Optional[Color] = None
+    bg: Optional[Color] = None
     padding: Union[PaddingConfig, int] = PaddingConfig()
-    max_width: Optional[int]
+    max_width: Optional[int] = None
     wrap: bool = True
     parse: Union[Dict[str, ParserOptions], ParserOptions, None] = None
     multi: bool = False
