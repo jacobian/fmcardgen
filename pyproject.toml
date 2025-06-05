@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 [project.scripts]
-fmcardgen = "fmcardgen:main"
+fmcardgen = "fmcardgen.cli:cli"
 
 [build-system]
 requires = ["hatchling"]
