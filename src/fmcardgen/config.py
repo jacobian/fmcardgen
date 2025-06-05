@@ -73,7 +73,7 @@ class TextFieldConfig(BaseModel):
     multi: bool = False
     spacing: int = 20
 
-    @field_validator("padding")
+    @field_validator("padding", mode="before")
     @classmethod
     def check_padding(cls, value: Union[PaddingConfig, int]) -> PaddingConfig:
         if not isinstance(value, PaddingConfig):
