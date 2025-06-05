@@ -1,7 +1,9 @@
-import pytest
-from fmcardgen import config
 from pathlib import Path
+
+import pytest
 from pydantic import ValidationError
+
+from fmcardgen import config
 
 
 @pytest.fixture(autouse=True)
@@ -70,7 +72,7 @@ def test_textfield_padding_from_int():
     "path, expected_error",
     [
         ["template.png", "couldn't open font"],
-        ["non-existant.ttf", r"file or directory .* does not exist"],
+        ["non-existant.ttf", "does not point to a file"],
     ],
 )
 def test_font_validator(path, expected_error):
