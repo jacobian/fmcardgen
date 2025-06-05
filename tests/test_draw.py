@@ -5,7 +5,7 @@ from pathlib import Path
 import dateutil.parser
 import pytest
 from PIL import Image, ImageChops, ImageFont, ImageStat
-from pydantic.color import Color
+from pydantic_extra_types.color import Color
 
 import fmcardgen.draw
 from fmcardgen.config import DEFAULT_FONT, CardGenConfig, TextFieldConfig
@@ -84,6 +84,7 @@ def test_wrap_font_text_long_words():
         "supercalifragilisticexpialidocious and\n"
         "thus may have trouble wrapping."
     )
+
 
 def test_wrap_font_text_extra_long_words():
     font = ImageFont.truetype("RobotoCondensed/RobotoCondensed-Bold.ttf", 40)
