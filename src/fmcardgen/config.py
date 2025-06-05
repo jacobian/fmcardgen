@@ -6,13 +6,8 @@ from typing import TYPE_CHECKING, Dict, List, Literal, Mapping, Optional, Union
 import toml
 import yaml
 from PIL import ImageFont
-from pydantic import (
-    BaseModel,
-    Field,
-    field_validator,
-    model_validator,
-)
-from pydantic.color import Color
+from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic_extra_types.color import Color
 
 DEFAULT_FONT = "__DEFAULT__"
 
@@ -54,6 +49,11 @@ class PaddingConfig(BaseModel):
 
 
 class TextFieldConfig(BaseModel):
+    model_config = {
+        "extra": "forbid",
+        "validate_assignment": True,
+    }
+
     # NB: need to define format before source so that the source validator below
     # works. See https://pydantic-docs.helpmanual.io/usage/models/#field-ordering.
     format: Optional[str] = None
@@ -72,10 +72,6 @@ class TextFieldConfig(BaseModel):
     parse: Union[Dict[str, ParserOptions], ParserOptions, None] = None
     multi: bool = False
     spacing: int = 20
-
-    class Config:
-        extra = "forbid"
-        validate_assignment = True
 
     @field_validator("padding")
     @classmethod
@@ -105,12 +101,13 @@ class TextFieldConfig(BaseModel):
 
 
 class FontConfig(BaseModel):
+    model_config = {
+        "extra": "forbid",
+        "validate_assignment": True,
+    }
+
     path: FilePath
     name: Optional[str]
-
-    class Config:
-        extra = "forbid"
-        validate_assignment = True
 
     @field_validator("path")
     @classmethod
@@ -128,18 +125,24 @@ class FontConfig(BaseModel):
 
 
 class ConfigDefaults(BaseModel):
+    model_config = {
+        "extra": "forbid",
+        "validate_assignment": True,
+    }
+
     font: Union[str, Path] = "default"
     font_size: int = 40
     fg: Color = Color((0, 0, 0))
     bg: Optional[Color] = None
     padding: int = 0
 
-    class Config:
-        extra = "forbid"
-        validate_assignment = True
-
 
 class CardGenConfig(BaseModel):
+    model_config = {
+        "extra": "forbid",
+        "validate_assignment": True,
+    }
+
     template: FilePath = Path("template.png")
     output: Optional[str] = "out-{slug}.png"
     defaults: ConfigDefaults = ConfigDefaults()
@@ -147,10 +150,6 @@ class CardGenConfig(BaseModel):
     text_fields: List[TextFieldConfig] = Field(
         [TextFieldConfig(x=10, y=10, source="title")], alias="fields"
     )
-
-    class Config:
-        extra = "forbid"
-        validate_assignment = True
 
     @classmethod
     def from_file(cls, path: Path) -> CardGenConfig:

@@ -10,6 +10,7 @@ requires-python = ">=3.9"
 dependencies = [
     "pillow>=11.2.1",
     "pydantic>=2.11.5",
+    "pydantic-extra-types>=2.10.5",
     "pygments>=2.19.1",
     "python-dateutil>=2.9.0.post0",
     "python-frontmatter>=1.1.0",
