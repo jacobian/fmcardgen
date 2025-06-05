@@ -163,7 +163,7 @@ class CardGenConfig(BaseModel):
                 raise ValueError(
                     f"Couldn't load config file {path}: it doesn't appear to be TOML, YAML, or JSON."
                 )
-        return cls.parse_obj(config)
+        return cls.model_validate(config)
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)

@@ -33,7 +33,7 @@ def set_working_directory_and_layout_engine(monkeypatch):
 
 @pytest.fixture()
 def config():
-    return CardGenConfig.parse_obj(CONFIG)
+    return CardGenConfig.model_validate(CONFIG)
 
 
 def test_draw(config):
@@ -111,7 +111,7 @@ def test_draw_wrapped(config: CardGenConfig):
 
 @pytest.mark.parametrize("value_for_default", ["MISSING", {"date": "MISSING"}])
 def test_draw_formatted_multi(value_for_default):
-    config = CardGenConfig.parse_obj(
+    config = CardGenConfig.model_validate(
         {
             "template": "template.png",
             "fields": [
@@ -134,7 +134,7 @@ def test_draw_formatted_multi(value_for_default):
 
 @pytest.mark.parametrize("format_string", ["{date:%B %-d, %Y}", "{:%B %-d, %Y}"])
 def test_draw_format_single(format_string):
-    config = CardGenConfig.parse_obj(
+    config = CardGenConfig.model_validate(
         {
             "template": "template.png",
             "fields": [
@@ -174,7 +174,7 @@ TAG_CONFIG = {
 
 @pytest.mark.parametrize("format", [None, "{}"])
 def test_draw_tags(format):
-    config = CardGenConfig.parse_obj(TAG_CONFIG)
+    config = CardGenConfig.model_validate(TAG_CONFIG)
     config.text_fields[0].format = format
     fm = {"tags": ["one", "two", "three", "four"]}
     im = fmcardgen.draw.draw(fm, config)
@@ -182,7 +182,7 @@ def test_draw_tags(format):
 
 
 def test_draw_tags_no_bg():
-    config = CardGenConfig.parse_obj(TAG_CONFIG)
+    config = CardGenConfig.model_validate(TAG_CONFIG)
     config.text_fields[0].bg = None
     fm = {"tags": ["one", "two", "three", "four"]}
     im = fmcardgen.draw.draw(fm, config)
@@ -199,7 +199,7 @@ def test_draw_missing_ok(config):
 
 
 def test_draw_parser_multiple_sources():
-    config = CardGenConfig.parse_obj(
+    config = CardGenConfig.model_validate(
         {
             "template": "template.png",
             "fields": [
@@ -227,7 +227,7 @@ def test_draw_get_parsers():
     Test a few other versions of `parse` with mulitple fields,
     not covered by the more integration-y test above
     """
-    field = TextFieldConfig.parse_obj(
+    field = TextFieldConfig.model_validate(
         {
             "x": 0,
             "y": 0,

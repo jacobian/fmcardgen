@@ -79,7 +79,7 @@ def test_font_validator(path, expected_error):
 
 
 def test_text_fields_can_set_fonts_directly():
-    c = config.CardGenConfig.parse_obj(
+    c = config.CardGenConfig.model_validate(
         {
             "fields": [
                 {
