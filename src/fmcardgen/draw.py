@@ -3,7 +3,7 @@ from typing import List, Mapping, Optional, Tuple, Union, cast
 
 import dateutil.parser
 from PIL import Image, ImageDraw, ImageFont
-from pydantic.color import Color
+from pydantic_extra_types.color import Color
 
 from .config import (
     DEFAULT_FONT,
