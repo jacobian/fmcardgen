@@ -44,8 +44,8 @@ testpaths = "tests"
 
 [tool.mypy]
 plugins = "pydantic.mypy"
-files = "fmcardgen, tests"
+files = "src, tests"
 
-[[tool.mypy.overides]]
+[[tool.mypy.overrides]]
 module = ["PIL", "frontmatter"]
 ignore_missing_imports = true
