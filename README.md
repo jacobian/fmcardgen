@@ -51,4 +51,122 @@ See `fmcardgen --help` for the full range of options.
 
 ## Configuration Options
 
-Working on it...
+### Top-level options
+
+- `template` (path): Template image file path (default: `template.png`)
+- `output` (string): Output filename pattern (default: `out-{slug}.png`). May contain string-format-style `{placeholders}`. Any field available in your post's frontmatter can appear here, along with the special fields `file_name` (the full post file name, e.g. `"whatever.md"`) and `file_stem` (just the name without extension, e.g. `"whatever"`)
+- `defaults`: [Default values for text fields](#defaults)
+- `fonts`: [Font definitions](#fonts)
+- `fields`: List of [text field configurations](#text-fields)
+
+### Defaults
+
+- `font` (string/path): Default font name or path (default: `"default"`)
+- `font_size` (int): Default font size (default: `40`)
+- `fg` (color): Default text color (default: black)
+- `bg` (color): Default background color (default: none)
+- `padding` (int): Default padding (default: `0`)
+
+Colors can be specified as hex strings (`"#ff0000"`), RGB tuples, or color names.
+
+### Fonts
+
+- `path` (path): Path to font file (required)
+- `name` (string): Font name for reference (default: filename stem)
+
+### Text Fields
+
+Required;
+
+- `source` (string/list): Frontmatter field(s) to read from. Can be a single field (`source = "title"`), or, with `format`, multiple fields.
+- `x` (int): X position
+- `y` (int): Y position
+
+Optional:
+
+- `format` (string): a Python format string (for `str.format`) used to format the value. Can be used to format input data that's structured, or to format dates, or format multiple values with `source` is a list.
+- `optional` (bool): Skip if source missing (default: `false`)
+- `default` (string/dict): Default value if source missing
+- `font` (string/path): Font name or path
+- `font_size` (float): Font size (default: `18.0`)
+- `fg` (color): Text color
+- `bg` (color): Background color
+- `padding` (int/object): Padding around text
+- `max_width` (int): Maximum text width
+- `wrap` (bool): Enable text wrapping (default: `true`)
+- `parse` (string/dict): Parse options (`"datetime"`)
+- `multi` (bool): For source fields that are a list, e.g. a `tags` field, so you want to draw multiple values (default: `false`)
+- `spacing` (int): Spacing between multiple values (default: `20`)
+
+Colors can be specified as hex strings (`"#ff0000"`), RGB tuples, or color names.
+
+#### Padding Options
+
+- Simple: `padding = 10` (all sides)
+- Detailed: `padding = {top=5, left=10, bottom=5, right=10}`
+- Shorthand: `padding = {horizontal=10, vertical=5}`
+
+## Configuration example
+
+Here's a full example, that I use on my blog:
+
+```toml
+output = "static/cards/{file_stem}.png"
+template = "fmcardgen-config/template.png"
+
+[[fonts]]
+name = "regular"
+path = "fonts/Roboto_Condensed/RobotoCondensed-Regular.ttf"
+
+[[fonts]]
+name = "bold"
+path = "fonts/Roboto_Condensed/RobotoCondensed-Bold.ttf"
+
+[[fonts]]
+name = "light"
+path = "fonts/Roboto_Condensed/RobotoCondensed-Light.ttf"
+
+[defaults]
+fg = "#000000"
+font = "regular"
+
+[[fields]]
+font = "bold"
+font_size = 60
+max_width = 930
+source = "title"
+x = 123
+y = 150
+
+[[fields]]
+default = ""
+font = "light"
+font_size = 36
+format = "{categories}:"
+source = "categories"
+x = 126
+y = 110
+
+[[fields]]
+default = {author = "Jacob Kaplan-Moss"}
+font = "light"
+font_size = 32
+format = "{author} • {date:%B %-d, %Y}"
+parse = {date = "datetime"}
+source = ["author", "date"]
+x = 240
+y = 425
+
+[[fields]]
+bg = "#f6ad55"
+font = "light"
+font_size = 16
+format = "{tags}"
+multi = true
+optional = true
+padding = {horizontal = 8, vertical = 4}
+source = "tags"
+spacing = 10
+x = 250
+y = 475
+```
