@@ -58,4 +58,4 @@ def test_cli_directory_requires_recursive(tmp_path: Path):
     runner = CliRunner()
     result = runner.invoke(cli, ["."])
     assert result.exit_code == 1
-    assert "must pass --recursive to walk directories\n" == result.stderr
+    assert "must pass --recursive to walk directories\n" == result.output
