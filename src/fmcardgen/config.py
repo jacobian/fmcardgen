@@ -128,8 +128,8 @@ class FontConfig(BaseModel):
 
     @field_validator("name")
     @classmethod
-    def check_name(cls, value: Optional[str], values: Dict) -> str:
-        return value if value else values["path"].stem
+    def check_name(cls, value: Optional[str], info: ValidationInfo) -> str:
+        return value if value else info.data["path"].stem
 
 
 class ConfigDefaults(BaseModel):
