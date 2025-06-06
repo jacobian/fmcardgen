@@ -19,7 +19,7 @@ from .frontmatter import (
     get_frontmatter_value,
 )
 
-FontType = ImageFont.FreeTypeFont | ImageFont.ImageFont
+FontType = Union[ImageFont.FreeTypeFont, ImageFont.ImageFont]
 
 
 def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:

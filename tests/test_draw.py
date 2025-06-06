@@ -1,6 +1,7 @@
 import datetime
 import secrets
 from pathlib import Path
+from typing import Optional
 
 import dateutil.parser
 import pytest
@@ -245,7 +246,7 @@ def assert_images_equal(
     actual: Image.Image,
     expected: Image.Image,
     delta: float = 0.01,
-    save_location: Path | None = None,
+    save_location: Optional[Path] = None,
 ):
     assert actual.size == expected.size, "expected images to be the same dimensions"
     assert actual.mode == expected.mode, "expected images to be the same mode"
