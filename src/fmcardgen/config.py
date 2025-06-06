@@ -70,7 +70,7 @@ class TextFieldConfig(BaseModel):
     x: int
     y: int
     font: Union[str, Path, None] = None
-    font_size: Optional[int] = None
+    font_size: float = 18.0
     fg: Optional[Color] = None
     bg: Optional[Color] = None
     padding: Union[PaddingConfig, int] = PaddingConfig()

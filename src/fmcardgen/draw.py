@@ -19,6 +19,8 @@ from .frontmatter import (
     get_frontmatter_value,
 )
 
+FontType = ImageFont.FreeTypeFont | ImageFont.ImageFont
+
 
 def draw(fm: dict, cnf: CardGenConfig) -> Image.Image:
     im = Image.open(cnf.template)
@@ -170,7 +172,7 @@ def draw_tag_field(im: Image.Image, tags: List[str], field: TextFieldConfig) -> 
     font = load_font(str(field.font), field.font_size)
 
     draw = ImageDraw.Draw(im)
-    xy = (field.x, field.y)
+    xy = (float(field.x), float(field.y))
     spacing = field.spacing + field.padding.left + field.padding.right
 
     # Calculate the height of all the text, and use that as the height for each
@@ -197,7 +199,7 @@ def draw_tag_field(im: Image.Image, tags: List[str], field: TextFieldConfig) -> 
 
 def _draw_rect(
     im: Image.Image,
-    bbox: Tuple[int, int, int, int],
+    bbox: Tuple[float, float, float, float],
     padding: PaddingConfig,
     color: Color,
 ):
@@ -222,7 +224,7 @@ def _draw_rect(
     im.alpha_composite(overlay)
 
 
-def wrap_font_text(font: ImageFont.ImageFont, text: str, max_width: int) -> str:
+def wrap_font_text(font: FontType, text: str, max_width: int) -> str:
     wrapper = TextWrapper()
     chunks = wrapper._split_chunks(text)
 
@@ -262,11 +264,12 @@ def wrap_font_text(font: ImageFont.ImageFont, text: str, max_width: int) -> str:
 LAYOUT_ENGINE = None
 
 
-def load_font(font: str, size: Optional[int]) -> ImageFont.ImageFont:
+def load_font(font: str, size: float) -> FontType:
+    # Work around some type signature mismatches between my API and Pillow's
     if font == DEFAULT_FONT:
         return ImageFont.load_default()
     else:
-        return ImageFont.truetype(font, size, layout_engine=LAYOUT_ENGINE)
+        return ImageFont.truetype(font, float(size), layout_engine=LAYOUT_ENGINE)
 
 
 PILColorTuple = Union[Tuple[int, int, int], Tuple[int, int, int, int]]
