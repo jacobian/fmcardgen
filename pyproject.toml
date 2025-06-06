@@ -1,7 +1,7 @@
 [project]
 name = "fmcardgen"
-version = "1.0rc1"
-description = "Add your description here"
+version = "1.0"
+description = "generate images from documents with frontmatter"
 readme = "README.md"
 authors = [
     { name = "Jacob Kaplan-Moss", email = "jacob@jacobian.org" }
