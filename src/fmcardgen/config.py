@@ -76,9 +76,10 @@ class TextFieldConfig(BaseModel):
     @field_validator("padding", mode="before")
     @classmethod
     def check_padding(cls, value: Union[PaddingConfig, int]) -> PaddingConfig:
-        if not isinstance(value, PaddingConfig):
+        if isinstance(value, int):
             return PaddingConfig(top=value, left=value, bottom=value, right=value)
-        return value
+        else:
+            return PaddingConfig.model_validate(value)
 
     @field_validator("source")
     @classmethod
