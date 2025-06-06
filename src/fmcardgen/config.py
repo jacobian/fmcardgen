@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Dict, List, Literal, Mapping, Optional, Union
 import toml
 import yaml
 from PIL import ImageFont
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
 from pydantic_extra_types.color import Color
 
 DEFAULT_FONT = "__DEFAULT__"
@@ -81,22 +81,22 @@ class TextFieldConfig(BaseModel):
         else:
             return PaddingConfig.model_validate(value)
 
-    @field_validator("source")
+    @field_validator("source", mode="after")
     @classmethod
     def check_source(
-        cls, value: Union[str, List[str]], values: Dict
+        cls, value: Union[str, List[str]], info: ValidationInfo
     ) -> Union[str, List[str]]:
-        if isinstance(value, list) and not values.get("format"):
+        if isinstance(value, list) and not info.data.get("format"):
             raise ValueError("can't have multiple sources without providing format")
         return value
 
-    @field_validator("multi")
+    @field_validator("multi", mode="after")
     @classmethod
-    def check_multi(cls, value: bool, values: Dict) -> bool:
+    def check_multi(cls, value: bool, info: ValidationInfo) -> bool:
         if value:
-            if "source" in values and isinstance(values["source"], list):
+            if "source" in info.data and isinstance(info.data["source"], list):
                 raise ValueError("can't have multiple sources with multi=True")
-            if "default" in values and isinstance(values["default"], Mapping):
+            if "default" in info.data and isinstance(info.data["default"], Mapping):
                 raise ValueError("can't have multiple defaults with multi=True")
         return value
 
