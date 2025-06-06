@@ -1,37 +1,51 @@
-[tool.poetry]
-authors = ["Jacob Kaplan-Moss <jacob@jacobian.org>"]
-description = ""
+[project]
 name = "fmcardgen"
-version = "0.1.0"
+version = "1.0"
+description = "generate images from documents with frontmatter"
+readme = "README.md"
+authors = [
+    { name = "Jacob Kaplan-Moss", email = "jacob@jacobian.org" }
+]
+requires-python = ">=3.9"
+dependencies = [
+    "pillow>=11.2.1",
+    "pydantic>=2.11.5",
+    "pydantic-extra-types>=2.10.5",
+    "pygments>=2.19.1",
+    "python-dateutil>=2.9.0.post0",
+    "python-frontmatter>=1.1.0",
+    "pyyaml>=6.0.2",
+    "rich>=14.0.0",
+    "toml>=0.10.2",
+    "typer>=0.16.0",
+]
 
-[tool.poetry.scripts]
-fmcardgen = 'fmcardgen.cli:cli'
+[project.scripts]
+fmcardgen = "fmcardgen.cli:cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.16.0",
+    "pytest>=8.4.0",
+    "pytest-cov>=6.1.1",
+    "ruff>=0.11.12",
+    "types-python-dateutil>=2.9.0.20250516",
+    "types-pyyaml>=6.0.12.20250516",
+    "types-toml>=0.10.8.20240310",
+]
 
 [tool.pytest.ini_options]
 addopts = "--cov=fmcardgen --cov=tests --no-cov-on-fail --cov-branch --cov-report term --cov-report html --cov-fail-under=100"
 testpaths = "tests"
 
-[tool.poetry.dependencies]
-Pillow = "^10.2.0"
-pydantic = "^1.8.2"
-python = "^3.8"
-python-dateutil = "^2.8.1"
-python-frontmatter = "^0.5.0"
-rich = "^9.11.0"
-toml = "^0.10.2"
-typer = {extras = ["all"], version = "^0.3.2"}
-pytest = "^6.2.5"
-pygments = "^2.17.2"
-pyyaml = { version = "!=6.0.0" }
+[tool.mypy]
+plugins = "pydantic.mypy"
+files = "src, tests"
 
-[tool.poetry.dev-dependencies]
-mypy = "^0.910"
-pytest = "^6.2.2"
-pytest-cov = "^2.11.1"
-types-PyYAML = "^6.0.0"
-types-toml = "^0.10.1"
-types-python-dateutil = "^2.8.2"
-
-[build-system]
-build-backend = "poetry.core.masonry.api"
-requires = ["poetry-core>=1.0.0"]
+[[tool.mypy.overrides]]
+module = ["PIL", "frontmatter"]
+ignore_missing_imports = true

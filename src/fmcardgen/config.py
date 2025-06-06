@@ -1,17 +1,13 @@
 from __future__ import annotations
 
-import yaml
-import toml
 from pathlib import Path
-from typing import Literal, Mapping, Optional, List, Union, Dict, TYPE_CHECKING
-from pydantic import (
-    BaseModel,
-    Field,
-    root_validator,
-    validator,
-)
-from pydantic.color import Color
+from typing import TYPE_CHECKING, Dict, List, Literal, Mapping, Optional, Union
+
+import toml
+import yaml
 from PIL import ImageFont
+from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
+from pydantic_extra_types.color import Color
 
 DEFAULT_FONT = "__DEFAULT__"
 
@@ -33,8 +29,15 @@ class PaddingConfig(BaseModel):
     bottom: int = 0
     right: int = 0
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def check_padding(cls, values: Dict) -> Dict:
+        # This makes me feel weird. Without it, this method can update a
+        # passed-in dict in-place, which usually isn't a problem but causes
+        # failed tests and I guess that means it's a bug? It just feels like
+        # this shouldn't be required, like it's something pydantic should be
+        # handling for me, but .... here we
+        values = values.copy()
+
         if "horizontal" in values:
             for conflict in ("left", "right"):
                 if conflict in values:
@@ -53,62 +56,69 @@ class PaddingConfig(BaseModel):
 
 
 class TextFieldConfig(BaseModel):
+    model_config = {
+        "extra": "forbid",
+        "validate_assignment": True,
+    }
+
     # NB: need to define format before source so that the source validator below
     # works. See https://pydantic-docs.helpmanual.io/usage/models/#field-ordering.
-    format: Optional[str]
+    format: Optional[str] = None
     source: Union[str, List[str]]
     optional: bool = False
-    default: Union[str, Dict[str, str], None]
+    default: Union[str, Dict[str, str], None] = None
     x: int
     y: int
-    font: Union[str, Path, None]
-    font_size: Optional[int]
-    fg: Optional[Color]
-    bg: Optional[Color]
+    font: Union[str, Path, None] = None
+    font_size: float = 18.0
+    fg: Optional[Color] = None
+    bg: Optional[Color] = None
     padding: Union[PaddingConfig, int] = PaddingConfig()
-    max_width: Optional[int]
+    max_width: Optional[int] = None
     wrap: bool = True
     parse: Union[Dict[str, ParserOptions], ParserOptions, None] = None
     multi: bool = False
     spacing: int = 20
 
-    class Config:
-        extra = "forbid"
-        validate_assignment = True
-
-    @validator("padding")
+    @field_validator("padding", mode="before")
+    @classmethod
     def check_padding(cls, value: Union[PaddingConfig, int]) -> PaddingConfig:
-        if not isinstance(value, PaddingConfig):
+        if isinstance(value, int):
             return PaddingConfig(top=value, left=value, bottom=value, right=value)
-        return value
+        else:
+            return PaddingConfig.model_validate(value)
 
-    @validator("source")
+    @field_validator("source", mode="after")
+    @classmethod
     def check_source(
-        cls, value: Union[str, List[str]], values: Dict
+        cls, value: Union[str, List[str]], info: ValidationInfo
     ) -> Union[str, List[str]]:
-        if isinstance(value, list) and not values.get("format"):
+        if isinstance(value, list) and not info.data.get("format"):
             raise ValueError("can't have multiple sources without providing format")
         return value
 
-    @validator("multi")
-    def check_multi(cls, value: bool, values: Dict) -> bool:
+    @field_validator("multi", mode="after")
+    @classmethod
+    def check_multi(cls, value: bool, info: ValidationInfo) -> bool:
         if value:
-            if "source" in values and isinstance(values["source"], list):
+            if "source" in info.data and isinstance(info.data["source"], list):
                 raise ValueError("can't have multiple sources with multi=True")
-            if "default" in values and isinstance(values["default"], Mapping):
+            if "default" in info.data and isinstance(info.data["default"], Mapping):
                 raise ValueError("can't have multiple defaults with multi=True")
         return value
 
 
 class FontConfig(BaseModel):
+    model_config = {
+        "extra": "forbid",
+        "validate_assignment": True,
+    }
+
     path: FilePath
     name: Optional[str]
 
-    class Config:
-        extra = "forbid"
-        validate_assignment = True
-
-    @validator("path")
+    @field_validator("path")
+    @classmethod
     def check_font(cls, value: FilePath) -> FilePath:
         try:
             ImageFont.truetype(str(value), size=12)
@@ -116,24 +126,31 @@ class FontConfig(BaseModel):
             raise ValueError(f"couldn't open font {value}: {e}") from e
         return value
 
-    @validator("name")
-    def check_name(cls, value: Optional[str], values: Dict) -> str:
-        return value if value else values["path"].stem
+    @field_validator("name")
+    @classmethod
+    def check_name(cls, value: Optional[str], info: ValidationInfo) -> str:
+        return value if value else info.data["path"].stem
 
 
 class ConfigDefaults(BaseModel):
+    model_config = {
+        "extra": "forbid",
+        "validate_assignment": True,
+    }
+
     font: Union[str, Path] = "default"
     font_size: int = 40
     fg: Color = Color((0, 0, 0))
     bg: Optional[Color] = None
     padding: int = 0
 
-    class Config:
-        extra = "forbid"
-        validate_assignment = True
-
 
 class CardGenConfig(BaseModel):
+    model_config = {
+        "extra": "forbid",
+        "validate_assignment": True,
+    }
+
     template: FilePath = Path("template.png")
     output: Optional[str] = "out-{slug}.png"
     defaults: ConfigDefaults = ConfigDefaults()
@@ -141,10 +158,6 @@ class CardGenConfig(BaseModel):
     text_fields: List[TextFieldConfig] = Field(
         [TextFieldConfig(x=10, y=10, source="title")], alias="fields"
     )
-
-    class Config:
-        extra = "forbid"
-        validate_assignment = True
 
     @classmethod
     def from_file(cls, path: Path) -> CardGenConfig:
@@ -158,7 +171,7 @@ class CardGenConfig(BaseModel):
                 raise ValueError(
                     f"Couldn't load config file {path}: it doesn't appear to be TOML, YAML, or JSON."
                 )
-        return cls.parse_obj(config)
+        return cls.model_validate(config)
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)

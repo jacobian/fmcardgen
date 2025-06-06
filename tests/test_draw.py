@@ -1,11 +1,12 @@
 import datetime
 import secrets
 from pathlib import Path
+from typing import Optional
 
 import dateutil.parser
 import pytest
 from PIL import Image, ImageChops, ImageFont, ImageStat
-from pydantic.color import Color
+from pydantic_extra_types.color import Color
 
 import fmcardgen.draw
 from fmcardgen.config import DEFAULT_FONT, CardGenConfig, TextFieldConfig
@@ -33,7 +34,7 @@ def set_working_directory_and_layout_engine(monkeypatch):
 
 @pytest.fixture()
 def config():
-    return CardGenConfig.parse_obj(CONFIG)
+    return CardGenConfig.model_validate(CONFIG)
 
 
 def test_draw(config):
@@ -85,6 +86,7 @@ def test_wrap_font_text_long_words():
         "thus may have trouble wrapping."
     )
 
+
 def test_wrap_font_text_extra_long_words():
     font = ImageFont.truetype("RobotoCondensed/RobotoCondensed-Bold.ttf", 40)
     text = (
@@ -111,7 +113,7 @@ def test_draw_wrapped(config: CardGenConfig):
 
 @pytest.mark.parametrize("value_for_default", ["MISSING", {"date": "MISSING"}])
 def test_draw_formatted_multi(value_for_default):
-    config = CardGenConfig.parse_obj(
+    config = CardGenConfig.model_validate(
         {
             "template": "template.png",
             "fields": [
@@ -134,7 +136,7 @@ def test_draw_formatted_multi(value_for_default):
 
 @pytest.mark.parametrize("format_string", ["{date:%B %-d, %Y}", "{:%B %-d, %Y}"])
 def test_draw_format_single(format_string):
-    config = CardGenConfig.parse_obj(
+    config = CardGenConfig.model_validate(
         {
             "template": "template.png",
             "fields": [
@@ -174,7 +176,7 @@ TAG_CONFIG = {
 
 @pytest.mark.parametrize("format", [None, "{}"])
 def test_draw_tags(format):
-    config = CardGenConfig.parse_obj(TAG_CONFIG)
+    config = CardGenConfig.model_validate(TAG_CONFIG)
     config.text_fields[0].format = format
     fm = {"tags": ["one", "two", "three", "four"]}
     im = fmcardgen.draw.draw(fm, config)
@@ -182,7 +184,7 @@ def test_draw_tags(format):
 
 
 def test_draw_tags_no_bg():
-    config = CardGenConfig.parse_obj(TAG_CONFIG)
+    config = CardGenConfig.model_validate(TAG_CONFIG)
     config.text_fields[0].bg = None
     fm = {"tags": ["one", "two", "three", "four"]}
     im = fmcardgen.draw.draw(fm, config)
@@ -199,7 +201,7 @@ def test_draw_missing_ok(config):
 
 
 def test_draw_parser_multiple_sources():
-    config = CardGenConfig.parse_obj(
+    config = CardGenConfig.model_validate(
         {
             "template": "template.png",
             "fields": [
@@ -227,7 +229,7 @@ def test_draw_get_parsers():
     Test a few other versions of `parse` with mulitple fields,
     not covered by the more integration-y test above
     """
-    field = TextFieldConfig.parse_obj(
+    field = TextFieldConfig.model_validate(
         {
             "x": 0,
             "y": 0,
@@ -244,7 +246,7 @@ def assert_images_equal(
     actual: Image.Image,
     expected: Image.Image,
     delta: float = 0.01,
-    save_location: Path = None,
+    save_location: Optional[Path] = None,
 ):
     assert actual.size == expected.size, "expected images to be the same dimensions"
     assert actual.mode == expected.mode, "expected images to be the same mode"

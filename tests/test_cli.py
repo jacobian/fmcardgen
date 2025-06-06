@@ -1,7 +1,9 @@
-import pytest
-from fmcardgen.cli import cli
 from pathlib import Path
+
+import pytest
 from typer.testing import CliRunner
+
+from fmcardgen.cli import cli
 
 
 @pytest.fixture(autouse=True)
@@ -56,4 +58,4 @@ def test_cli_directory_requires_recursive(tmp_path: Path):
     runner = CliRunner()
     result = runner.invoke(cli, ["."])
     assert result.exit_code == 1
-    assert "--recursive" in result.stdout
+    assert "must pass --recursive to walk directories\n" == result.output
