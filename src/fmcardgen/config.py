@@ -31,6 +31,13 @@ class PaddingConfig(BaseModel):
 
     @model_validator(mode="before")
     def check_padding(cls, values: Dict) -> Dict:
+        # This makes me feel weird. Without it, this method can update a
+        # passed-in dict in-place, which usually isn't a problem but causes
+        # failed tests and I guess that means it's a bug? It just feels like
+        # this shouldn't be required, like it's something pydantic should be
+        # handling for me, but .... here we
+        values = values.copy()
+
         if "horizontal" in values:
             for conflict in ("left", "right"):
                 if conflict in values:
