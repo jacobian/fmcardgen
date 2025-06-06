@@ -121,7 +121,7 @@ def test_config_multi_validation():
         ValidationError, match="can't have multiple defaults with multi=True"
     ):
         config.TextFieldConfig(
-            multi=True, source="x", default={"x": 1, "y": 2}, x=0, y=0
+            multi=True, source="x", default={"x": "", "y": ""}, x=0, y=0
         )
 
 
